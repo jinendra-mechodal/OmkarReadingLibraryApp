@@ -9,6 +9,7 @@ class RegistrationModel {
   String aadharNumber;
   String address;
 
+
   RegistrationModel({
     required this.studentName,
     required this.startDate,
@@ -41,4 +42,26 @@ class RegistrationModel {
     aadharNumber: json['aadharNumber'],
     address: json['address'],
   );
+}
+
+// lib/models/registration_model.dart
+
+class RegistrationResponse {
+  final String status;
+  final String message;
+  final int? studentId;
+
+  RegistrationResponse({
+    required this.status,
+    required this.message,
+    this.studentId,
+  });
+
+  factory RegistrationResponse.fromJson(Map<String, dynamic> json) {
+    return RegistrationResponse(
+      status: json['status'],
+      message: json['message'],
+      studentId: json['student_id'],
+    );
+  }
 }

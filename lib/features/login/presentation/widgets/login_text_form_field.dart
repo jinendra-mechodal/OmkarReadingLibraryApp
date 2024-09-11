@@ -10,6 +10,7 @@ class LoginTextFormField extends StatelessWidget {
   final FormFieldValidator<String>? validator;
   final FocusNode focusNode;
   final VoidCallback? toggleObscureText;
+  final VoidCallback? onFieldSubmittedCallback;
 
   LoginTextFormField({
     required this.controller,
@@ -18,6 +19,7 @@ class LoginTextFormField extends StatelessWidget {
     this.validator,
     required this.focusNode,
     this.toggleObscureText,
+    this.onFieldSubmittedCallback,
   });
 
   @override
@@ -66,6 +68,12 @@ class LoginTextFormField extends StatelessWidget {
               : null,
         ),
         validator: validator,
+        onFieldSubmitted: (value) {
+          // Call the provided callback if available
+          if (onFieldSubmittedCallback != null) {
+            onFieldSubmittedCallback!();
+          }
+        },
       ),
     );
   }

@@ -1,10 +1,15 @@
+// lib/pages/notification_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../res/colors/app_color.dart';
 import '../../res/fonts/text_style.dart';
 import '../../res/routes/app_routes.dart';
+import '../../utils/constants/logger.dart';
+import 'ViewModel/notification_viewmodel.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -15,9 +20,48 @@ class NotificationPage extends StatefulWidget {
 
 class _NotificationPageState extends State<NotificationPage> {
   @override
+  void initState() {
+    super.initState();
+    final viewModel = Provider.of<NotificationViewModel>(context, listen: false);
+    logDebug('Fetching notifications'); // Debug log
+   // viewModel.loadNotifications(2 ); // Replace with actual user ID
+   _fetchNotifications();
+  }
+
+  Future<void> _fetchNotifications() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? userId = prefs.getString('user_id'); // Adjust the key to your preference
+
+      if (userId != null && userId.isNotEmpty) {
+        final viewModel = Provider.of<NotificationViewModel>(context, listen: false);
+        logDebug('User ID retrieved: $userId'); // Debug log
+        final int parsedUserId = int.parse(userId); // Assuming userId is a number
+        logDebug('Fetching notifications for user ID: $parsedUserId'); // Debug log
+        viewModel.loadNotifications(parsedUserId);
+      } else {
+        logDebug('User ID is empty or not found in shared preferences');
+      }
+    } catch (e) {
+      logDebug('Error fetching notifications: $e'); // Log any error that occurs
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final viewModel = Provider.of<NotificationViewModel>(context);
+    final notificationViewModel = Provider.of<NotificationViewModel>(context);
+
+    if (viewModel.isLoading) {
+      logDebug('Loading...'); // Debug log
+    }
+
+    if (viewModel.error.isNotEmpty) {
+      logDebug('Error: ${viewModel.error}'); // Debug log
+    }
+
     return Scaffold(
-      backgroundColor: AppColor.whiteColor,
+      backgroundColor: Colors.white,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: Container(
@@ -44,7 +88,8 @@ class _NotificationPageState extends State<NotificationPage> {
             actions: [
               InkWell(
                 onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.home);
+                 // Navigator.pushNamed(context, AppRoutes.home);
+                  Navigator.of(context).pop();
                 },
                 child: Row(
                   children: [
@@ -70,631 +115,84 @@ class _NotificationPageState extends State<NotificationPage> {
           ),
         ),
       ),
-      body:  SingleChildScrollView(
-        child: Column(
-          children: [
-            // Notification
-            Padding(
-              padding:  EdgeInsets.symmetric(
-                horizontal: 16.w,
+      body:
+      viewModel.isLoading
+          ? Center(child: CircularProgressIndicator())
+          : viewModel.error.isNotEmpty
+          ? Center(child: Text(viewModel.error)):
+      notificationViewModel.notifications.isEmpty
+          ? Center(child: Text('No notifications available'))
+          : ListView.builder(
+        padding: EdgeInsets.all(16.0),
+        itemCount: viewModel.notifications.length,
+        itemBuilder: (context, index) {
+          final notification = viewModel.notifications[index];
+          logDebug('Displaying notification: ${notification.studentName}'); // Debug log
+          return GestureDetector(
+            onTap: () {
+              logDebug('Notification tapped: ${notification.studentName}'); // Debug log
+             // Navigator.pushNamed(context, '/studentDetails');
+            },
+            child: Container(
+              padding: EdgeInsets.all(16.0),
+              margin: EdgeInsets.only(bottom: 10.0),
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(12.0),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  SizedBox(height: 10.h),
-                  Text(
-                    "Todays",
-                    style: LexendtextFont500.copyWith(
-                      fontSize: 14.sp,
-                      color: AppColor.textcolorSilver,
-                    ),
+                  Image.asset(
+                    'assets/icons/ball-icon.png', // Path to your image asset
+                    width: 24.w, // Set the width of the image
+                    height: 24.h, // Set the height of the image
+                    color: AppColor.textcolor_red, // Optional: Apply color filter if needed
                   ),
-                  SizedBox(height: 10.h),
-                  GestureDetector(
-                    onTap: (){
-                      Navigator.pushNamed(context, AppRoutes.studentsdetails);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(16.w),
-                      decoration: BoxDecoration(
-                        color: AppColor.bglightgray,
-                        // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      width: double.infinity,
-                      height: 70.h,
-                      child: Row(
+                 // Icon(Icons.notification_important, color: AppColor.textcolor_red,),
+                  SizedBox(width: 10.0),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          Image.asset(
-                            "assets/icons/ball-icon.png",
-                            width: 28.w,
-                            height: 30.h,
+                          Text(
+                            notification.studentName,
+                            style: TextStyle(color: Colors.red, fontSize: 11),
                           ),
-                          SizedBox(width: 10.w),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    // "$name’s ",
-                                    'Chetan Parmar',
-                                    style: LexendtextFont400.copyWith(
-                                      color: Colors.red,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Subscription expiring soon',
-                                    style: LexendtextFont400.copyWith(
-                                      color: AppColor.textcolorBlack,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "Subscription End : 22/12/2025",
-                                // "Subscription End : $endDate",
-                                style: PoppinstextFont200.copyWith(
-                                  color: AppColor.textcolorBlack,
-                                  fontSize: 10.sp,
-                                ),
-                              ),
-                            ],
+                          SizedBox(width: 4.w,),
+                          Text(
+                            'Subscription expiring soon',
+                            style: TextStyle(color: Colors.black, fontSize: 10.sp),
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
-                  GestureDetector(
-                    onTap: (){
-                      Navigator.pushNamed(context, AppRoutes.studentsdetails);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(16.w),
-                      decoration: BoxDecoration(
-                        color: AppColor.bglightgray,
-                        // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      width: double.infinity,
-                      height: 70.h,
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            "assets/icons/ball-icon.png",
-                            width: 28.w,
-                            height: 30.h,
-                          ),
-                          SizedBox(width: 10.w),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    // "$name’s ",
-                                    'Chetan Parmar',
-                                    style: LexendtextFont400.copyWith(
-                                      color: Colors.red,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Subscription expiring soon',
-                                    style: LexendtextFont400.copyWith(
-                                      color: AppColor.textcolorBlack,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "Subscription End : 22/12/2025",
-                                // "Subscription End : $endDate",
-                                style: PoppinstextFont200.copyWith(
-                                  color: AppColor.textcolorBlack,
-                                  fontSize: 10.sp,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
-                  GestureDetector(
-                    onTap: (){
-                      Navigator.pushNamed(context, AppRoutes.studentsdetails);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(16.w),
-                      decoration: BoxDecoration(
-                        color: AppColor.bglightgray,
-                        // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      width: double.infinity,
-                      height: 70.h,
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            "assets/icons/ball-icon.png",
-                            width: 28.w,
-                            height: 30.h,
-                          ),
-                          SizedBox(width: 10.w),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    // "$name’s ",
-                                    'Chetan Parmar',
-                                    style: LexendtextFont400.copyWith(
-                                      color: Colors.red,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Subscription expiring soon',
-                                    style: LexendtextFont400.copyWith(
-                                      color: AppColor.textcolorBlack,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "Subscription End : 22/12/2025",
-                                // "Subscription End : $endDate",
-                                style: PoppinstextFont200.copyWith(
-                                  color: AppColor.textcolorBlack,
-                                  fontSize: 10.sp,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
-                  GestureDetector(
-                    onTap: (){
-                      Navigator.pushNamed(context, AppRoutes.studentsdetails);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(16.w),
-                      decoration: BoxDecoration(
-                        color: AppColor.bglightgray,
-                        // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      width: double.infinity,
-                      height: 70.h,
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            "assets/icons/ball-icon.png",
-                            width: 28.w,
-                            height: 30.h,
-                          ),
-                          SizedBox(width: 10.w),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    // "$name’s ",
-                                    'Chetan Parmar',
-                                    style: LexendtextFont400.copyWith(
-                                      color: Colors.red,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Subscription expiring soon',
-                                    style: LexendtextFont400.copyWith(
-                                      color: AppColor.textcolorBlack,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "Subscription End : 22/12/2025",
-                                // "Subscription End : $endDate",
-                                style: PoppinstextFont200.copyWith(
-                                  color: AppColor.textcolorBlack,
-                                  fontSize: 10.sp,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
 
-                  Text(
-                    "20 December 2024",
-                    style: LexendtextFont500.copyWith(
-                      fontSize: 14.sp,
-                      color: AppColor.textcolorSilver,
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
-                  GestureDetector(
-                    onTap: (){
-                      Navigator.pushNamed(context, AppRoutes.studentsdetails);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(16.w),
-                      decoration: BoxDecoration(
-                        color: AppColor.bglightgray,
-                        // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      width: double.infinity,
-                      height: 70.h,
-                      child: Row(
+                      Row(
                         children: [
-                          Image.asset(
-                            "assets/icons/ball-icon.png",
-                            width: 28.w,
-                            height: 30.h,
+                          Text(
+                            "Subscription End :",
+                            style: LexendtextFont400.copyWith(
+                              color: AppColor.textcolorBlack,
+                              fontSize: 11.sp,
+                            ),
                           ),
-                          SizedBox(width: 10.w),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    // "$name’s ",
-                                    'Chetan Parmar',
-                                    style: LexendtextFont400.copyWith(
-                                      color: Colors.red,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Subscription expiring soon',
-                                    style: LexendtextFont400.copyWith(
-                                      color: AppColor.textcolorBlack,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "Subscription End : 22/12/2025",
-                                // "Subscription End : $endDate",
-                                style: PoppinstextFont200.copyWith(
-                                  color: AppColor.textcolorBlack,
-                                  fontSize: 10.sp,
-                                ),
-                              ),
-                            ],
+                          SizedBox(width: 2.w),
+                          Text(
+                            '${notification.endDate}',
+                            style: LexendtextFont400.copyWith(
+                              color: AppColor.textcolor_gray,
+                              fontSize: 11.sp,
+                            ),
                           ),
                         ],
                       ),
-                    ),
+                    ],
                   ),
-                  SizedBox(height: 10.h),
-                  GestureDetector(
-                    onTap: (){
-                      Navigator.pushNamed(context, AppRoutes.studentsdetails);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(16.w),
-                      decoration: BoxDecoration(
-                        color: AppColor.bglightgray,
-                        // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      width: double.infinity,
-                      height: 70.h,
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            "assets/icons/ball-icon.png",
-                            width: 28.w,
-                            height: 30.h,
-                          ),
-                          SizedBox(width: 10.w),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    // "$name’s ",
-                                    'Chetan Parmar',
-                                    style: LexendtextFont400.copyWith(
-                                      color: Colors.red,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Subscription expiring soon',
-                                    style: LexendtextFont400.copyWith(
-                                      color: AppColor.textcolorBlack,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "Subscription End : 22/12/2025",
-                                // "Subscription End : $endDate",
-                                style: PoppinstextFont200.copyWith(
-                                  color: AppColor.textcolorBlack,
-                                  fontSize: 10.sp,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
-                  GestureDetector(
-                    onTap: (){
-                      Navigator.pushNamed(context, AppRoutes.studentsdetails);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(16.w),
-                      decoration: BoxDecoration(
-                        color: AppColor.bglightgray,
-                        // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      width: double.infinity,
-                      height: 70.h,
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            "assets/icons/ball-icon.png",
-                            width: 28.w,
-                            height: 30.h,
-                          ),
-                          SizedBox(width: 10.w),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    // "$name’s ",
-                                    'Chetan Parmar',
-                                    style: LexendtextFont400.copyWith(
-                                      color: Colors.red,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Subscription expiring soon',
-                                    style: LexendtextFont400.copyWith(
-                                      color: AppColor.textcolorBlack,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "Subscription End : 22/12/2025",
-                                // "Subscription End : $endDate",
-                                style: PoppinstextFont200.copyWith(
-                                  color: AppColor.textcolorBlack,
-                                  fontSize: 10.sp,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
-                  GestureDetector(
-                    onTap: (){
-                      Navigator.pushNamed(context, AppRoutes.studentsdetails);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(16.w),
-                      decoration: BoxDecoration(
-                        color: AppColor.bglightgray,
-                        // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      width: double.infinity,
-                      height: 70.h,
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            "assets/icons/ball-icon.png",
-                            width: 28.w,
-                            height: 30.h,
-                          ),
-                          SizedBox(width: 10.w),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    // "$name’s ",
-                                    'Chetan Parmar',
-                                    style: LexendtextFont400.copyWith(
-                                      color: Colors.red,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Subscription expiring soon',
-                                    style: LexendtextFont400.copyWith(
-                                      color: AppColor.textcolorBlack,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "Subscription End : 22/12/2025",
-                                // "Subscription End : $endDate",
-                                style: PoppinstextFont200.copyWith(
-                                  color: AppColor.textcolorBlack,
-                                  fontSize: 10.sp,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
-                  GestureDetector(
-                    onTap: (){
-                      Navigator.pushNamed(context, AppRoutes.studentsdetails);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(16.w),
-                      decoration: BoxDecoration(
-                        color: AppColor.bglightgray,
-                        // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      width: double.infinity,
-                      height: 70.h,
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            "assets/icons/ball-icon.png",
-                            width: 28.w,
-                            height: 30.h,
-                          ),
-                          SizedBox(width: 10.w),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    // "$name’s ",
-                                    'Chetan Parmar',
-                                    style: LexendtextFont400.copyWith(
-                                      color: Colors.red,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Subscription expiring soon',
-                                    style: LexendtextFont400.copyWith(
-                                      color: AppColor.textcolorBlack,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "Subscription End : 22/12/2025",
-                                // "Subscription End : $endDate",
-                                style: PoppinstextFont200.copyWith(
-                                  color: AppColor.textcolorBlack,
-                                  fontSize: 10.sp,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
-                  GestureDetector(
-                    onTap: (){
-                      Navigator.pushNamed(context, AppRoutes.studentsdetails);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(16.w),
-                      decoration: BoxDecoration(
-                        color: AppColor.bglightgray,
-                        // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      width: double.infinity,
-                      height: 70.h,
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            "assets/icons/ball-icon.png",
-                            width: 28.w,
-                            height: 30.h,
-                          ),
-                          SizedBox(width: 10.w),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    // "$name’s ",
-                                    'Chetan Parmar',
-                                    style: LexendtextFont400.copyWith(
-                                      color: Colors.red,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Subscription expiring soon',
-                                    style: LexendtextFont400.copyWith(
-                                      color: AppColor.textcolorBlack,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                "Subscription End : 22/12/2025",
-                                // "Subscription End : $endDate",
-                                style: PoppinstextFont200.copyWith(
-                                  color: AppColor.textcolorBlack,
-                                  fontSize: 10.sp,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
-                  SizedBox(height: 20.h),
                 ],
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

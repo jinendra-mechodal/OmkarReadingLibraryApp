@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-
 import '../../features/available_students/presentation/screens/available_student_screen.dart';
-import '../../features/home_page/accountant_home_page.dart';
+import '../../features/home_page/Accountant/accountant_home_page.dart';
 import '../../features/home_page/home_page.dart';
-import '../../features/home_page/super_admin_home_page.dart';
-import '../../features/home_page/supervisor_home_page.dart';
+import '../../features/home_page/Superadmin/super_admin_home_page.dart';
+import '../../features/home_page/Superwiser/supervisor_home_page.dart';
 import '../../features/login/presentation/screens/login_screen.dart';
 import '../../features/notification/notification.dart';
 import '../../features/payment/presentation/screens/print_payment_screen.dart';
-import '../../features/records/student_details_page.dart';
-import '../../features/records/student_record_edit.dart';
-import '../../features/records/students_record.dart';
+import '../../features/records/student_record_details/student_details_page.dart';
+import '../../features/records/student_record_edit/student_record_edit.dart';
+import '../../features/records/student_record/students_record.dart';
 import '../../features/registration/presentation/screens/registration_screen.dart';
 import '../../features/report/presentation/screens/student_report_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
@@ -25,10 +24,10 @@ class AppRoutes {
   static const String printPaymentScreen = '/printPaymentScreen';
   static const String studentReportScreen = '/studentReportScreen';
   static const String studentRecordScreen = '/studentRecordScreen';
-  static const String registrationSuccess = '/registrationSuccess ';
-  static const String studentDetailsSuccess = '/studentDetailsSuccess ';
-  static const String studentsdetails = '/studentsdetails ';
-  static const String studentDetailsEdit = '/studentDetailsEdit ';
+  static const String registrationSuccess = '/registrationSuccess';
+  static const String studentDetailsSuccess = '/studentDetailsSuccess';
+  static const String studentsdetails = '/studentsdetails';
+  static const String studentDetailsEdit = '/studentDetailsEdit';
   static const String availableStudents = '/available_students';
   static const String notification = '/Notification';
 
@@ -61,17 +60,21 @@ class AppRoutes {
       case studentDetailsEdit:
         return MaterialPageRoute(builder: (_) => StudentRecordEdit());
       case studentsdetails:
-        return MaterialPageRoute(builder: (_) => StudentDetailsPage());
+      // Ensure that the arguments are correctly cast to int
+        final int studentId = settings.arguments is int
+            ? settings.arguments as int
+            : int.tryParse(settings.arguments as String ?? '') ?? 0;
+        return MaterialPageRoute(
+          builder: (_) => StudentDetailsPage(studentId: studentId),
+        );
       case studentDetailsSuccess:
         return MaterialPageRoute(builder: (_) => SuccessStudentDetailsScreen());
-
       case printPaymentScreen:
         return MaterialPageRoute(builder: (_) => PrintPaymentScreen());
       case studentReportScreen:
         return MaterialPageRoute(builder: (_) => StudentReportScreen());
-        case studentRecordScreen:
+      case studentRecordScreen:
         return MaterialPageRoute(builder: (_) => StudentsRecord());
-
       default:
         return _errorRoute();
     }

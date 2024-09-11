@@ -21,20 +21,20 @@ class RegistrationUseCase {
       aadharNumber: entity.aadharNumber,
       address: entity.address,
     );
-    await repository.saveRegistration(model);
+   // await repository.saveRegistration(model);
   }
 
-  Future<RegistrationEntity> fetchRegistration() async {
-    final model = await repository.fetchRegistration();
-    return RegistrationEntity(
-      studentName: model.studentName,
-      startDate: model.startDate,
-      endDate: model.endDate,
-      fees: model.fees,
-      serialNumber: model.serialNumber,
-      contactDetails: model.contactDetails,
-      aadharNumber: model.aadharNumber,
-      address: model.address,
-    );
-  }
+  // Future<RegistrationEntity> fetchRegistration() async {
+  //   final model = await repository.fetchRegistration();
+  //   return RegistrationEntity(
+  //     studentName: model.studentName,
+  //     startDate: model.startDate,
+  //     endDate: model.endDate,
+  //     fees: model.fees,
+  //     serialNumber: model.serialNumber,
+  //     contactDetails: model.contactDetails,
+  //     aadharNumber: model.aadharNumber,
+  //     address: model.address,
+  //   );
+  // }
 }

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../data/app_excaption.dart';
 import '../../../../res/colors/app_color.dart';
 import '../../../../res/fonts/text_style.dart';
 import '../../../../res/routes/app_routes.dart';
 import '../../../../utils/constants/logger.dart';
+import '../../../../utils/utils.dart';
 import '../../data/login_repository.dart';
 import '../../view_models/login_usecase.dart';
 import '../widgets/login_button.dart';
@@ -75,7 +77,8 @@ class _LoginScreenState extends State<LoginScreen> {
       logDebug('Password: $password');
 
       final loginViewModel = Provider.of<LoginViewModel>(context, listen: false);
-      loginViewModel.login(email, password).then((_) {
+
+      loginViewModel.login(email, password, context).then((_) {
         final route = loginViewModel.navigationRoute;
         if (route != null) {
           logDebug('Navigating to: $route');
@@ -87,6 +90,15 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }).catchError((error) {
         logDebug('Login error: $error');
+
+        // Use Utils to display the error message to the user
+        if (error is AppExceptions) {
+         // Utils.snackBar('Login Error', error.toString());
+          Utils.snackBar('',error.toString());
+        } else {
+          Utils.snackBar('Unexpected Error', 'An unexpected error occurred: $error');
+        }
+
       });
     } else {
       logDebug('Form validation failed');
@@ -135,6 +147,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               controller: _emailController,
                               hintText: 'User ID',
                               focusNode: _emailFocusNode,
+                              onFieldSubmittedCallback: () {
+                                // Move focus to the next field (password)
+                                Utils.fieldFocusChange(context, _emailFocusNode, _passwordFocusNode);
+                              },
                               validator: (value) {
                                 logDebug('Validating email: $value');
                                 if (value == null || value.isEmpty) {
@@ -161,6 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               },
                             ),
                             SizedBox(height: 20.h),
+
                             viewModel.isLoading
                                 ? Center(child: CircularProgressIndicator())
                                 : LoginButton(onPressed: _login),

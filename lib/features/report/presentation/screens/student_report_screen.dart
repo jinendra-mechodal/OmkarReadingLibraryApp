@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../res/colors/app_color.dart';
 import '../../../../res/fonts/text_style.dart';
 import '../../../../res/routes/app_routes.dart';
+import '../../data/report_model.dart';
+import '../../data/report_repository.dart';
+import '../../domain/student_report_view_model.dart';
 
 class StudentReportScreen extends StatefulWidget {
   const StudentReportScreen({super.key});
@@ -18,6 +23,9 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
   String _startDate = 'Start Date';
   String _endDate = 'End Date';
 
+  // Variable to store fetched reports
+  List<StudentReport> _reports = [];
+
   // Function to show date picker and update the selected date
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     final DateTime? selectedDate = await showDatePicker(
@@ -29,15 +37,89 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
 
     if (selectedDate != null) {
       setState(() {
-        final formattedDate =
-            DateFormat('dd-MM-yyyy').format(selectedDate); // Corrected format
+        final formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate); // Corrected format
         if (isStartDate) {
           _startDate = formattedDate;
         } else {
           _endDate = formattedDate;
         }
       });
+
+      // Log the selected dates
+      print('Start Date: $_startDate');
+      print('End Date: $_endDate');
+
+      // If the end date is selected, make the API call
+      if (!isStartDate) {
+        await _fetchReports();
+      }
     }
+  }
+
+  Future<void> _fetchReports() async {
+    try {
+      // Log the start of the fetch operation
+      print('Starting report fetch...');
+
+      // Retrieve user ID from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('user_id') ?? ''; // Default to empty string if user_id is not found
+      print('User ID: $userId');
+
+      // Format dates using the updated _formatDate method
+      final startDateFormatted = _formatDate(_startDate);
+      final endDateFormatted = _formatDate(_endDate);
+
+      // Log formatted dates
+      print('Formatted Start Date: $startDateFormatted');
+      print('Formatted End Date: $endDateFormatted');
+
+      // Check if dates are valid
+      if (startDateFormatted.isEmpty || endDateFormatted.isEmpty) {
+        print('Error: One or both dates are invalid.');
+        return;
+      }
+
+      // Log that the API call is being made
+      print('Fetching reports from repository...');
+
+      // Use Provider to access StudentReportViewModel
+      final viewModel = Provider.of<StudentReportViewModel>(context, listen: false);
+
+      // Ensure the correct named parameters are used
+      await viewModel.fetchReports(
+        userId: userId,
+        startDate: startDateFormatted,
+        endDate: endDateFormatted,
+      );
+
+      // Check if reports are empty
+      if (viewModel.reports.isEmpty) {
+        print('No reports found for the given date range.');
+      } else {
+        print('Reports fetched successfully: ${viewModel.reports}');
+      }
+    } catch (e) {
+      // Log the error
+      print('API Request Error: $e');
+    }
+  }
+
+  String _formatDate(String date) {
+    try {
+      final inputFormat = DateFormat('dd-MM-yyyy');
+      final outputFormat = DateFormat('yyyy-MM-dd');
+      final parsedDate = inputFormat.parse(date); // Parse the date in dd-MM-yyyy format
+      return outputFormat.format(parsedDate); // Format it to yyyy-MM-dd
+    } catch (e) {
+      print('Date formatting error: $e');
+      return '';
+    }
+  }
+
+  // Method to handle tap event and print student_id
+  void _handleTap(String studentId) {
+    print('Student ID: $studentId');
   }
 
   @override
@@ -201,504 +283,69 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
         ),
       ),
       body: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: 16.w,
-          vertical: 16.h,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              InkWell(
-                onTap: () {
-                  // Redirect to studentsdetails page
-                  //Navigator.pushNamed(context, AppRoutes.studentsdetails);
-                },
-                child: Container(
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    color: AppColor.bglightgray,
-                    // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  width: double.infinity,
-                  height: 70.h,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            // "$name’s ",
-                            'Chetan Parmar',
-                            style: LexendtextFont500.copyWith(
-                              color: AppColor.textcolorBlack,
-                              fontSize: 14.sp,
-                            ),
-                          ),
-                          Text(
-                            "Subscription End : 22/12/2025",
-                            // "Subscription End : $endDate",
-                            style: PoppinstextFont400.copyWith(
-                              color: AppColor.textcolorBlack,
-                              fontSize: 10.sp,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Image.asset(
-                        "assets/icons/right-icon.png",
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+        child: Consumer<StudentReportViewModel>(
+          builder: (context, viewModel, child) {
+            if (viewModel.isLoading) {
+              return Center(child: CircularProgressIndicator());
+            }
 
-              SizedBox(height: 10.h),
+            if (viewModel.error.isNotEmpty) {
+              return Center(child: Text('Error: ${viewModel.error}'));
+            }
 
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            return ListView.builder(
+              itemCount: viewModel.reports.length,
+              itemBuilder: (context, index) {
+                final report = viewModel.reports[index];
+                return InkWell(
+                  onTap: () {
+                    // Handle tap
+                    _handleTap(report.studentId);
+                    Navigator.pushNamed(context, AppRoutes.studentsdetails);
+                  },
+                  child: Container(
+                    margin: EdgeInsets.all(5.r),
+                    padding: EdgeInsets.all(16.w),
+                    decoration: BoxDecoration(
+                      color: AppColor.bglightgray,
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    width: double.infinity,
+                    height: 70.h,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              report.studentName,
+                              style: LexendtextFont500.copyWith(
+                                color: AppColor.textcolorBlack,
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                            Text(
+                              "Subscription End : ${report.endDate}",
+                              style: PoppinstextFont400.copyWith(
+                                color: AppColor.textcolorBlack,
+                                fontSize: 10.sp,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          "Subscription End : 22/12/2025",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
+                        Image.asset(
+                          "assets/icons/right-icon.png",
                         ),
                       ],
                     ),
-                    Image.asset(
-                      "assets/icons/right-icon.png",
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "Subscription End : 22/12/2025",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Image.asset(
-                      "assets/icons/right-icon.png",
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "Subscription End : 22/12/2025",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Image.asset(
-                      "assets/icons/right-icon.png",
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "Subscription End : 22/12/2025",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Image.asset(
-                      "assets/icons/right-icon.png",
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "Subscription End : 22/12/2025",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Image.asset(
-                      "assets/icons/right-icon.png",
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "Subscription End : 22/12/2025",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Image.asset(
-                      "assets/icons/right-icon.png",
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "Subscription End : 22/12/2025",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Image.asset(
-                      "assets/icons/right-icon.png",
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "Subscription End : 22/12/2025",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Image.asset(
-                      "assets/icons/right-icon.png",
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "Subscription End : 22/12/2025",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Image.asset(
-                      "assets/icons/right-icon.png",
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "Subscription End : 22/12/2025",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Image.asset(
-                      "assets/icons/right-icon.png",
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "Subscription End : 22/12/2025",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Image.asset(
-                      "assets/icons/right-icon.png",
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 20.h),
-            ],
-          ),
+                  ),
+                );
+              },
+            );
+          },
         ),
       ),
     );

@@ -107,23 +107,6 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
   final FocusNode _endDateFocusNode = FocusNode();
   final FocusNode _feesFocusNode = FocusNode();
 
-  // Future<void> _selectDate(TextEditingController controller) async {
-  //   final DateTime? selectedDate = await showDatePicker(
-  //
-  //     context: context,
-  //     initialDate: DateTime.now(),
-  //     firstDate: DateTime(1900),
-  //     lastDate: DateTime(2100),
-  //   );
-  //
-  //   if (selectedDate != null) {
-  //     setState(() {
-  //       // Format date as YYYY-MM-DD
-  //       controller.text = "${selectedDate.toLocal()}".split(' ')[0];
-  //     });
-  //   }
-  // }
-
   Future<void> _selectDate(TextEditingController controller) async {
     final DateTime? selectedDate = await showDatePicker(
       context: context,
@@ -387,7 +370,8 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
             actions: [
               InkWell(
                 onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.home);
+                 // Navigator.pushNamed(context, AppRoutes.home);
+                  Navigator.pop(context);
                 },
                 child: Row(
                   children: [

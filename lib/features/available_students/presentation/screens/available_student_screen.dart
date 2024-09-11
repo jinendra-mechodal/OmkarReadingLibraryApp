@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../res/colors/app_color.dart';
 import '../../../../res/fonts/text_style.dart';
-import '../../../../res/routes/app_routes.dart';
+import '../../domain/student_view_model.dart';
 
 class AvailableStudentScreen extends StatefulWidget {
   const AvailableStudentScreen({super.key});
@@ -14,7 +16,51 @@ class AvailableStudentScreen extends StatefulWidget {
 
 class _AvailableStudentScreenState extends State<AvailableStudentScreen> {
   @override
+  // void initState() {
+  //   super.initState();
+  //   // Initialize ViewModel
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     Provider.of<StudentViewModel>(context, listen: false).fetchAvailableStudents(1);
+  //   });
+  //
+  //
+  // }
+
+  void initState() {
+    super.initState();
+
+    Future.microtask(() async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        print('SharedPreferences instance obtained.');
+
+        final userIdString = prefs.getString('user_id');
+        print('Retrieved user ID as String: $userIdString');
+
+        final userId = userIdString != null ? int.tryParse(userIdString) : 0;
+        print('Parsed user ID: $userId');
+
+        if (userId != null && userId != 0) {
+          print('Valid user ID found. Loading notifications...');
+          // final notificationViewModel = Provider.of<NotificationViewModel>(context, listen: false);
+          // await notificationViewModel.loadNotifications(userId);
+
+          final viewModel = Provider.of<StudentViewModel>(context, listen: false);
+          await viewModel.fetchAvailableStudents(userId);
+
+        } else {
+          print('User ID not found in SharedPreferences or invalid.');
+        }
+      } catch (e) {
+        print('Error loading data: $e');
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final viewModel = Provider.of<StudentViewModel>(context);
+
     return Scaffold(
       backgroundColor: AppColor.whiteColor,
       appBar: PreferredSize(
@@ -24,10 +70,10 @@ class _AvailableStudentScreenState extends State<AvailableStudentScreen> {
             color: AppColor.whiteColor,
             boxShadow: [
               BoxShadow(
-                color: Colors.black12.withOpacity(0.02), // Shadow color
-                spreadRadius: 1, // Spread radius
-                blurRadius: 4, // Blur radius
-                offset: Offset(0, 4), // Shadow offset (bottom side)
+                color: Colors.black12.withOpacity(0.02),
+                spreadRadius: 1,
+                blurRadius: 4,
+                offset: Offset(0, 4),
               ),
             ],
           ),
@@ -35,7 +81,6 @@ class _AvailableStudentScreenState extends State<AvailableStudentScreen> {
             backgroundColor: AppColor.whiteColor,
             title: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
-             // mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Text(
                   'Available Students',
@@ -44,13 +89,13 @@ class _AvailableStudentScreenState extends State<AvailableStudentScreen> {
                     color: AppColor.textcolorBlack,
                   ),
                 ),
-                SizedBox(width: 20.w,),
+                SizedBox(width: 20.w),
                 CircleAvatar(
                   backgroundColor: AppColor.btncolor,
                   radius: 15.r,
                   child: Center(
                     child: Text(
-                      "25",
+                      "${viewModel.studentCount}",
                       style: TextStyle(color: AppColor.whiteColor),
                     ),
                   ),
@@ -60,8 +105,7 @@ class _AvailableStudentScreenState extends State<AvailableStudentScreen> {
             actions: [
               InkWell(
                 onTap: () {
-                  // Redirect to Home page
-                  Navigator.pushNamed(context, AppRoutes.home);
+                  Navigator.pop(context);
                 },
                 child: Row(
                   children: [
@@ -83,547 +127,83 @@ class _AvailableStudentScreenState extends State<AvailableStudentScreen> {
                 ),
               ),
             ],
-            automaticallyImplyLeading: false, // Hides the back button
+            automaticallyImplyLeading: false,
           ),
         ),
       ),
       body: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: 16.w,
-         // vertical: 16.h,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Container(
-               // width: 260.w,
-                height: 45.h,
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    prefixIcon: Container(
-                      padding: EdgeInsets.all(8.0),
-                      child: Image.asset(
-                        'assets/icons/search-icon.png',
-                        color: AppColor.textcolorSilver,
-                        height: 24.h,
-                        width: 24.w,
-                      ),
-                    ),
-                    hintText: 'Search...',
-                    hintStyle: LexendtextFont300.copyWith(
-                      color: AppColor.textcolorSilver,
-                      fontSize: 14.sp,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.r),
-                      borderSide: BorderSide(
-                        color: AppColor.textcolorSilver,
-                        width: 1.w,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.r),
-                      borderSide: BorderSide(
-                        color: AppColor.textcolorSilver,
-                        // Change this to your desired color
-                        width: 1.w,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 10.h),
-
-              InkWell(
-                onTap: () {
-                  // Redirect to studentsdetails page
-                  //Navigator.pushNamed(context, AppRoutes.studentsdetails);
-                },
-                child: Container(
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    color: AppColor.bglightgray,
-                    // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  width: double.infinity,
-                  height: 70.h,
-                  child: Row(
-                   // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      SizedBox(width: 30.w,),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            // "$name’s ",
-                            'Chetan Parmar',
-                            style: LexendtextFont500.copyWith(
-                              color: AppColor.textcolorBlack,
-                              fontSize: 14.sp,
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        child: Column(
+          children: [
+            SizedBox(height: 10.h),
+            if (viewModel.isLoading)
+              Center(child: CircularProgressIndicator(
+                color: AppColor.btncolor,
+              ))
+            else if (viewModel.errorMessage.isNotEmpty)
+              Center(child: Text(viewModel.errorMessage))
+            else
+              Expanded(
+                child: ListView.builder(
+                  itemCount: viewModel.students.length,
+                  itemBuilder: (context, index) {
+                    final student = viewModel.students[index];
+                    return InkWell(
+                      onTap: () {
+                        // Redirect to studentsdetails page
+                      },
+                      child: Container(
+                       // padding: EdgeInsets.all(16.w),
+                      //  margin: EdgeInsets.only(top: 10.h, bottom: 5.h),
+                        decoration: BoxDecoration(
+                          color: AppColor.bglightgray,
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        width: double.infinity,
+                        height: 70.h,
+                        child: Row(
+                          children: [
+                            SizedBox(width: 30.w),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  student.name,
+                                  style: LexendtextFont500.copyWith(
+                                    color: AppColor.textcolorBlack,
+                                    fontSize: 14.sp,
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      "In Time:",
+                                      style: PoppinstextFont400.copyWith(
+                                        color: AppColor.textcolorBlack,
+                                        fontSize: 10.sp,
+                                      ),
+                                    ),
+                                    SizedBox(width: 2.w,),
+                                    Text(
+                                      "${student.lastSignInTime}",
+                                      style: PoppinstextFont400.copyWith(
+                                        color: AppColor.textcolor_gray,
+                                        fontSize: 10.sp,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                          ),
-                          Text(
-                            "In Time : 10:30 AM",
-                            // "Subscription End : $endDate",
-                            style: PoppinstextFont400.copyWith(
-                              color: AppColor.textcolorBlack,
-                              fontSize: 10.sp,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
-
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: AppColor.bglightgray,
-                  // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(width: 30.w,),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "In Time : 10:30 AM",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: AppColor.bglightgray,
-                  // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(width: 30.w,),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "In Time : 10:30 AM",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: AppColor.bglightgray,
-                  // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(width: 30.w,),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "In Time : 10:30 AM",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: AppColor.bglightgray,
-                  // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(width: 30.w,),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "In Time : 10:30 AM",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: AppColor.bglightgray,
-                  // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(width: 30.w,),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "In Time : 10:30 AM",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: AppColor.bglightgray,
-                  // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(width: 30.w,),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "In Time : 10:30 AM",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: AppColor.bglightgray,
-                  // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(width: 30.w,),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "In Time : 10:30 AM",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: AppColor.bglightgray,
-                  // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(width: 30.w,),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "In Time : 10:30 AM",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: AppColor.bglightgray,
-                  // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(width: 30.w,),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "In Time : 10:30 AM",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: AppColor.bglightgray,
-                  // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(width: 30.w,),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "In Time : 10:30 AM",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                  ],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: AppColor.bglightgray,
-                  // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                width: double.infinity,
-                height: 70.h,
-                child: Row(
-                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(width: 30.w,),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // "$name’s ",
-                          'Chetan Parmar',
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Text(
-                          "In Time : 10:30 AM",
-                          // "Subscription End : $endDate",
-                          style: PoppinstextFont400.copyWith(
-                            color: AppColor.textcolorBlack,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 20.h),
-            ],
-          ),
+          ],
         ),
       ),
     );

@@ -1,80 +1,76 @@
-
-
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../../utils/utils.dart';
 import '../app_excaption.dart';
 import 'BaseApiService.dart';
 
-
 class NetworkApiServices extends BaseApiServices {
-
-
   @override
-  Future<dynamic> getApi(String url)async{
-
+  Future<dynamic> getApi(String url) async {
     if (kDebugMode) {
-      print(url);
+      print('GET request to: $url');
     }
 
-    dynamic responseJson ;
     try {
-
-      final response = await http.get(Uri.parse(url)).timeout( const Duration(seconds: 10));
-      responseJson  = returnResponse(response) ;
-    }on SocketException {
-      throw InternetException('');
-    }on RequestTimeOut {
-      throw RequestTimeOut('');
-
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
+      return _returnResponse(response);
+    } on SocketException {
+      Utils.snackBar('Network Error', 'No internet connection');
+      throw InternetException('No internet connection');
+    } on TimeoutException {
+      Utils.snackBar('Request Timeout', 'Request timed out');
+      throw RequestTimeOut('Request timed out');
+    } catch (e) {
+      Utils.snackBar('Unexpected Error', 'An unexpected error occurred: $e');
+      throw FetchDataException('An unexpected error occurred: $e');
     }
-    print(responseJson);
-    return responseJson ;
-
   }
 
-
   @override
-  Future<dynamic> postApi(var data , String url)async{
-
+  Future<dynamic> postApi(dynamic data, String url) async {
     if (kDebugMode) {
-      print(url);
-      print(data);
+      print('POST request to: $url');
+      print('Data: $data');
     }
 
-    dynamic responseJson ;
     try {
-
-      final response = await http.post(Uri.parse(url),
-          body: data
-      ).timeout( const Duration(seconds: 10));
-      responseJson  = returnResponse(response) ;
-    }on SocketException {
-      throw InternetException('');
-    }on RequestTimeOut {
-      throw RequestTimeOut('');
-
+      final response = await http.post(
+        Uri.parse(url),
+        body: jsonEncode(data),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 10));
+      return _returnResponse(response);
+    } on SocketException {
+      Utils.snackBar('Network Error', 'No internet connection');
+      throw InternetException('No internet connection');
+    } on TimeoutException {
+      Utils.snackBar('Request Timeout', 'Request timed out');
+      throw RequestTimeOut('Request timed out');
+    } catch (e) {
+      Utils.snackBar('Unexpected Error', 'An unexpected error occurred: $e');
+      throw FetchDataException('An unexpected error occurred: $e');
     }
-    if (kDebugMode) {
-      print(responseJson);
-    }
-    return responseJson ;
-
   }
 
-  dynamic returnResponse(http.Response response){
-    switch(response.statusCode){
+  dynamic _returnResponse(http.Response response) {
+    switch (response.statusCode) {
       case 200:
-        dynamic responseJson = jsonDecode(response.body);
-        return responseJson ;
+        return jsonDecode(response.body);
       case 400:
-        dynamic responseJson = jsonDecode(response.body);
-        return responseJson ;
-
-      default :
-        throw FetchDataException('Error accoured while communicating with server '+response.statusCode.toString()) ;
+        throw FetchDataException('Bad request: ${response.body}');
+      case 401:
+        throw FetchDataException('Unauthorized: ${response.body}');
+      case 403:
+        throw FetchDataException('Forbidden: ${response.body}');
+      case 404:
+        throw FetchDataException('Not found: ${response.body}');
+      case 500:
+        throw ServerException('Internal server error: ${response.body}');
+      default:
+        throw FetchDataException('Unexpected error: ${response.statusCode}');
     }
   }
-
 }

@@ -3,8 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:library_app/features/registration/presentation/widgets/submit_button.dart';
 import 'package:library_app/res/colors/app_color.dart';
 import 'package:library_app/res/fonts/text_style.dart';
-import '../../../../res/routes/app_routes.dart';
-import '../registration/presentation/widgets/registration_form.dart';
+import '../../../../../res/routes/app_routes.dart';
+import '../../registration/presentation/widgets/registration_form.dart';
 
 class StudentRecordEdit extends StatefulWidget {
   const StudentRecordEdit({super.key});
@@ -81,7 +81,8 @@ class _StudentRecordEditState extends State<StudentRecordEdit> {
             actions: [
               InkWell(
                 onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.studentsdetails);
+                 // Navigator.pushNamed(context, AppRoutes.studentsdetails);
+                  Navigator.pop(context);
                 },
                 child: Row(
                   children: [

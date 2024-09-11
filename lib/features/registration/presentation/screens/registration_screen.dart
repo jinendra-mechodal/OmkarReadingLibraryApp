@@ -3,7 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:library_app/features/registration/presentation/widgets/submit_button.dart';
 import 'package:library_app/res/colors/app_color.dart';
 import 'package:library_app/res/fonts/text_style.dart';
+import 'package:provider/provider.dart';
 import '../../../../res/routes/app_routes.dart';
+import '../viewmodels/registration_view_model.dart';
 import '../widgets/registration_form.dart'; // Adjust the import path as needed
 
 class RegistrationScreen extends StatefulWidget {
@@ -81,7 +83,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             actions: [
               InkWell(
                 onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.home);
+                //  Navigator.pushNamed(context, AppRoutes.home);
+                  Navigator.pop(context);
                 },
                 child: Row(
                   children: [
@@ -236,18 +239,119 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 },
               ),
               SizedBox(height: 20.h),
-              SubmitButton(onPressed: () {
+              // SubmitButton(onPressed: () async {
+              //   // Validate form and process data here
+              //   if (_formKey.currentState?.validate() ?? false) {
+              //
+              //     // Get the ViewModel from Provider
+              //     final registrationViewModel = Provider.of<RegistrationViewModel>(context, listen: false);
+              //
+              //     await registrationViewModel.registerStudent(
+              //       name: _studentNameController.text,
+              //       serialNo: _serialNumberController.text,
+              //       contact: _contactDetailsController.text,
+              //       aadharNo: _aadharNumberController.text,
+              //       address: _addressController.text,
+              //       startDate: _startDateController.text,
+              //       endDate: _endDateController.text,
+              //       fee: _feesController.text,
+              //
+              //     );
+              //
+              //     print('Form validation successful');
+              //     print('Student Name: ${_studentNameController.text}');
+              //     print('Start Date: ${_startDateController.text}');
+              //     print('End Date: ${_endDateController.text}');
+              //     print('Fees: ${_feesController.text}');
+              //     print('Serial Number: ${_serialNumberController.text}');
+              //     print('Contact Details: ${_contactDetailsController.text}');
+              //     print('Aadhar Number: ${_aadharNumberController.text}');
+              //     print('Address: ${_addressController.text}');
+              //
+              //     // // Process data here
+              //     // ScaffoldMessenger.of(context).showSnackBar(
+              //     //   SnackBar(content: Text('Processing Data')),
+              //     // );
+              //     //
+              //     // // Redirect to Home page
+              //     // Navigator.pushNamed(context, AppRoutes.registrationSuccess);
+              //
+              //     // Check if registration was successful
+              //     if (registrationViewModel.registrationResponse?.status == 'success') {
+              //       ScaffoldMessenger.of(context).showSnackBar(
+              //         SnackBar(content: Text('Student Registered successfully')),
+              //       );
+              //       Navigator.pushNamed(context, AppRoutes.registrationSuccess);
+              //     } else {
+              //       ScaffoldMessenger.of(context).showSnackBar(
+              //         SnackBar(content: Text(registrationViewModel.errorMessage ?? 'Unknown error')),
+              //       );
+              //     }
+              //
+              //   }
+              // }),
+              SubmitButton(onPressed: () async {
                 // Validate form and process data here
                 if (_formKey.currentState?.validate() ?? false) {
-                  // Process data here
+                  // Show loading indicator while processing
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Processing Data')),
+                    SnackBar(content: Text('Processing Data...')),
                   );
 
-                  // Redirect to Home page
-                  Navigator.pushNamed(context, AppRoutes.registrationSuccess);
+                  // Get the ViewModel from Provider
+                  final registrationViewModel = Provider.of<RegistrationViewModel>(context, listen: false);
+
+                  try {
+                    // Register the student with the provided data
+                    await registrationViewModel.registerStudent(
+                      name: _studentNameController.text,
+                      serialNo: _serialNumberController.text,
+                      contact: _contactDetailsController.text,
+                      aadharNo: _aadharNumberController.text,
+                      address: _addressController.text,
+                      startDate: _startDateController.text,
+                      endDate: _endDateController.text,
+                      fee: _feesController.text,
+                    );
+
+                    // Debug print statements (you can remove them in production)
+                    print('Form validation successful');
+                    print('Student Name: ${_studentNameController.text}');
+                    print('Start Date: ${_startDateController.text}');
+                    print('End Date: ${_endDateController.text}');
+                    print('Fees: ${_feesController.text}');
+                    print('Serial Number: ${_serialNumberController.text}');
+                    print('Contact Details: ${_contactDetailsController.text}');
+                    print('Aadhar Number: ${_aadharNumberController.text}');
+                    print('Address: ${_addressController.text}');
+
+                    // Check if registration was successful
+                    if (registrationViewModel.registrationResponse?.status == 'success') {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Student Registered successfully')),
+                      );
+                      // Redirect to Success page
+                      Navigator.pushNamed(context, AppRoutes.registrationSuccess);
+                    } else {
+                      // Show error message if registration failed
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(registrationViewModel.errorMessage ?? 'Unknown error')),
+                      );
+                    }
+                  } catch (e) {
+                    // Handle any exceptions that occur during the registration process
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('An error occurred: $e')),
+                    );
+                  }
+                } else {
+                  // Show validation error if form is not valid
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Please fix the errors in the form')),
+                  );
                 }
               }),
+
             ],
           ),
         ),
