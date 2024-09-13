@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:library_app/features/registration/presentation/widgets/submit_button.dart';
-import 'package:library_app/res/colors/app_color.dart';
-import 'package:library_app/res/fonts/text_style.dart';
-import '../../../../../res/routes/app_routes.dart';
+import '../../../res/colors/app_color.dart';
+import '../../../res/fonts/text_style.dart';
+import '../../../res/routes/app_routes.dart';
 import '../../registration/presentation/widgets/registration_form.dart';
+import '../../registration/presentation/widgets/submit_button.dart';
+import 'data/student_service.dart';
 
 class StudentRecordEdit extends StatefulWidget {
-  const StudentRecordEdit({super.key});
+  final int? studentId;
+
+  const StudentRecordEdit({Key? key, this.studentId}) : super(key: key);
 
   @override
   State<StudentRecordEdit> createState() => _StudentRecordEditState();
@@ -16,39 +19,117 @@ class StudentRecordEdit extends StatefulWidget {
 class _StudentRecordEditState extends State<StudentRecordEdit> {
   final _formKey = GlobalKey<FormState>();
 
+  // Controllers for the form fields
   final TextEditingController _studentNameController = TextEditingController();
-  final TextEditingController _startDateController = TextEditingController();
-  final TextEditingController _endDateController = TextEditingController();
-  final TextEditingController _feesController = TextEditingController();
   final TextEditingController _serialNumberController = TextEditingController();
-  final TextEditingController _contactDetailsController =
-  TextEditingController();
+  final TextEditingController _contactDetailsController = TextEditingController();
   final TextEditingController _aadharNumberController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
 
+  // Focus nodes for the form fields
   final FocusNode _studentNameFocusNode = FocusNode();
-  final FocusNode _startDateFocusNode = FocusNode();
-  final FocusNode _endDateFocusNode = FocusNode();
-  final FocusNode _feesFocusNode = FocusNode();
   final FocusNode _serialNumberFocusNode = FocusNode();
   final FocusNode _contactDetailsFocusNode = FocusNode();
   final FocusNode _aadharNumberFocusNode = FocusNode();
   final FocusNode _addressFocusNode = FocusNode();
 
-  Future<void> _selectDate(TextEditingController controller) async {
-    final DateTime? selectedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-    );
+  final StudentService _studentService = StudentService();
+  bool _isLoading = false;
 
-    if (selectedDate != null) {
-      setState(() {
-        // Format date as YYYY-MM-DD
-        controller.text = "${selectedDate.toLocal()}".split(' ')[0];
-      });
+  @override
+  void initState() {
+    super.initState();
+    final int? studentId = widget.studentId;
+    print('Received student ID on edit page init call: $studentId');
+
+    if (widget.studentId != null) {
+      _fetchStudentDetails();
     }
+  }
+
+  Future<void> _fetchStudentDetails() async {
+    setState(() => _isLoading = true);
+    try {
+      if (widget.studentId != null) {
+        final studentDetailsResponse = await _studentService.getStudentDetails(widget.studentId!);
+
+        if (studentDetailsResponse.status == 'success') {
+          final studentData = studentDetailsResponse.data;
+
+          // Print the student details
+          print('Student Details: ${studentData.name}, ${studentData.serialNo}, ${studentData.contact}, ${studentData.aadharNo}, ${studentData.address}');
+
+          setState(() {
+            _studentNameController.text = studentData.name;
+            _serialNumberController.text = studentData.serialNo;
+            _contactDetailsController.text = studentData.contact;
+            _aadharNumberController.text = studentData.aadharNo;
+            _addressController.text = studentData.address;
+          });
+        } else {
+          throw Exception(studentDetailsResponse.message);
+        }
+      }
+    } catch (e) {
+      print('Error fetching student details: $e'); // Debugging output
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching student details: $e')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _updateStudentDetails() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() => _isLoading = true);
+      try {
+        final response = await _studentService.updateStudentDetails(
+          studentId: widget.studentId ?? 0,
+          name: _studentNameController.text,
+          serialNo: _serialNumberController.text,
+          contact: _contactDetailsController.text,
+          aadharNo: _aadharNumberController.text,
+          address: _addressController.text,
+        );
+
+        print('Update response: ${response.message}'); // Debugging output
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.message)),
+        );
+
+        if (response.status == 'success') {
+          Navigator.pushReplacementNamed(
+            context,
+            AppRoutes.studentsdetails,
+            arguments: widget.studentId,
+          );
+        }
+      } catch (e) {
+        print('Error updating student details: $e'); // Debugging output
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating student details: $e')),
+        );
+      } finally {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    // Dispose of controllers and focus nodes to prevent memory leaks
+    _studentNameController.dispose();
+    _serialNumberController.dispose();
+    _contactDetailsController.dispose();
+    _aadharNumberController.dispose();
+    _addressController.dispose();
+    _studentNameFocusNode.dispose();
+    _serialNumberFocusNode.dispose();
+    _contactDetailsFocusNode.dispose();
+    _aadharNumberFocusNode.dispose();
+    _addressFocusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -62,10 +143,10 @@ class _StudentRecordEditState extends State<StudentRecordEdit> {
             color: AppColor.whiteColor,
             boxShadow: [
               BoxShadow(
-                color: Colors.black12.withOpacity(0.02), // Shadow color
-                spreadRadius: 1, // Spread radius
-                blurRadius: 4, // Blur radius
-                offset: const Offset(0, 4), // Shadow offset (bottom side)
+                color: Colors.black12.withOpacity(0.02),
+                spreadRadius: 1,
+                blurRadius: 4,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -81,7 +162,6 @@ class _StudentRecordEditState extends State<StudentRecordEdit> {
             actions: [
               InkWell(
                 onTap: () {
-                 // Navigator.pushNamed(context, AppRoutes.studentsdetails);
                   Navigator.pop(context);
                 },
                 child: Row(
@@ -108,7 +188,11 @@ class _StudentRecordEditState extends State<StudentRecordEdit> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator(
+        color: AppColor.btncolor,
+      ))
+          : SingleChildScrollView(
         padding: EdgeInsets.all(16.w),
         child: Form(
           key: _formKey,
@@ -180,18 +264,7 @@ class _StudentRecordEditState extends State<StudentRecordEdit> {
                 },
               ),
               SizedBox(height: 20.h),
-              SubmitButton(onPressed: () {
-                // Validate form and process data here
-                if (_formKey.currentState?.validate() ?? false) {
-                  // Process data here
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Processing Data')),
-                  );
-
-                  // Redirect to Home page
-                  Navigator.pushNamed(context, AppRoutes.studentsdetails);
-                }
-              }),
+              SubmitButton(onPressed: _updateStudentDetails),
             ],
           ),
         ),

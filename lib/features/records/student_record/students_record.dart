@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../res/colors/app_color.dart';
 import '../../../res/fonts/text_style.dart';
 import '../../../res/routes/app_routes.dart';
-import '../../../utils/constants/logger.dart';
+import '../../../utils/logger.dart';
 import 'view_modal_studentrecord/student_record_view_model.dart';
 
 class StudentsRecord extends StatefulWidget {
@@ -18,12 +18,25 @@ class StudentsRecord extends StatefulWidget {
 
 class _StudentsRecordState extends State<StudentsRecord> {
   DateTime? _selectedDate;
+  TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     // Fetch initial student records
     _fetchStudentRecord();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchStudentRecord() async {
@@ -93,6 +106,11 @@ class _StudentsRecordState extends State<StudentsRecord> {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<StudentRecordViewModel>(context);
+
+    // Filter records based on the search query
+    final filteredRecords = viewModel.studentRecords.where((record) {
+      return record.name.toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
 
     print('Student Records Count: ${viewModel.studentRecords.length}'); // Debugging line
 
@@ -164,6 +182,10 @@ class _StudentsRecordState extends State<StudentsRecord> {
                   width: 260.w,
                   height: 45.h,
                   child: TextFormField(
+                    controller: _searchController,
+                    onChanged: (value){
+
+                    },
                     decoration: InputDecoration(
                       prefixIcon: Container(
                         padding: EdgeInsets.all(8.0),
@@ -225,18 +247,18 @@ class _StudentsRecordState extends State<StudentsRecord> {
                   : viewModel.studentRecords.isEmpty
                   ? Center(child: Text('No student records available'))
                   : ListView.builder(
-                itemCount: viewModel.studentRecords.length,
+                itemCount: filteredRecords.length,
                 itemBuilder: (context, index) {
-                  final record = viewModel.studentRecords[index];
+                  final record = filteredRecords[index];
                   return InkWell(
                     onTap: () {
                      // logDebug('Navigating to student details for ${record.id}');
                      // Navigator.pushNamed(context, AppRoutes.studentsdetails);
-                      logDebug('Navigating to student details for ${record.id}');
+                      logDebug('Navigating to student details for ${record.studentId}');
                       Navigator.pushNamed(
                         context,
                         AppRoutes.studentsdetails,
-                        arguments: record.id, // Pass the student ID as an argument
+                        arguments: record.studentId, // Pass the student ID as an argument
                       );
                       },
                     child: Container(

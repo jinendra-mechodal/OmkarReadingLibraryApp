@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../../utils/constants/logger.dart';
+import '../../../../utils/logger.dart';
 import '../../data/registration_model.dart';
 import '../../data/registration_repository.dart';
 

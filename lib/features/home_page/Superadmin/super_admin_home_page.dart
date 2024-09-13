@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../res/colors/app_color.dart';
 import '../../../../../res/fonts/text_style.dart';
 import '../../../res/routes/app_routes.dart';
-import '../../../utils/constants/logger.dart'; // Ensure you have this import or use your logging package
+import '../../../utils/logger.dart'; // Ensure you have this import or use your logging package
 import '../../../utils/custom_navigator_observer.dart';
 import '../../login/view_models/login_usecase.dart';
 import '../../notification/ViewModel/notification_viewmodel.dart';
@@ -277,7 +277,7 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
                   physics: NeverScrollableScrollPhysics(),
                   itemBuilder: (context, index) {
                     final notification = notificationViewModel.notifications[index];
-                    print('Displaying notification: ${notification.studentName}');
+                   // print('Displaying notification: ${notification.studentName}');
                     return GestureDetector(
                       onTap: () {
                         print('Notification tapped: ${notification.studentName}');

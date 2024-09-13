@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../res/colors/app_color.dart';
 import '../../../../res/fonts/text_style.dart';
 import '../../../../res/routes/app_routes.dart';
 import '../../../registration/presentation/widgets/registration_form.dart';
-
+import 'ViewModel/subscription_view_model.dart';
 
 class CustomSubscriptionDialog extends StatelessWidget {
   final TextEditingController startDateController;
   final TextEditingController endDateController;
   final TextEditingController feesController;
+  final int studentId;
 
   final FocusNode startDateFocusNode = FocusNode();
   final FocusNode endDateFocusNode = FocusNode();
@@ -21,12 +23,15 @@ class CustomSubscriptionDialog extends StatelessWidget {
     required this.startDateController,
     required this.endDateController,
     required this.feesController,
+    required this.studentId,
   });
 
   @override
   Widget build(BuildContext context) {
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setState) {
+        final viewModel = Provider.of<SubscriptionViewModel>(context);
+
         return Dialog(
           backgroundColor: AppColor.whiteColor,
           shape: RoundedRectangleBorder(
@@ -55,7 +60,7 @@ class CustomSubscriptionDialog extends StatelessWidget {
                           child: RegistrationTextFormField(
                             controller: startDateController,
                             hintText: 'Start Date',
-                            focusNode: startDateFocusNode, // Provide the focus node
+                            focusNode: startDateFocusNode,
                             keyboardType: TextInputType.datetime,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -75,7 +80,7 @@ class CustomSubscriptionDialog extends StatelessWidget {
                           child: RegistrationTextFormField(
                             controller: endDateController,
                             hintText: 'End Date',
-                            focusNode: endDateFocusNode, // Provide the focus node
+                            focusNode: endDateFocusNode,
                             keyboardType: TextInputType.datetime,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -94,7 +99,7 @@ class CustomSubscriptionDialog extends StatelessWidget {
                 RegistrationTextFormField(
                   controller: feesController,
                   hintText: 'Fees',
-                  focusNode: feesFocusNode, // Provide the focus node
+                  focusNode: feesFocusNode,
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -110,17 +115,37 @@ class CustomSubscriptionDialog extends StatelessWidget {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // Handle submission logic here
-                        //Navigator.of(context).pop(); // Close the dialog
-                        Navigator.pushNamed(context, AppRoutes.studentDetailsSuccess);
+                      onPressed: () async {
+                        // Get input data
+                        final startDate = startDateController.text;
+                        final endDate = endDateController.text;
+                        final fees = feesController.text;
+
+                        // Call the ViewModel to submit the subscription
+                        await viewModel.submitSubscription(
+                          studentId: studentId,
+                          startDate: startDate,
+                          endDate: endDate,
+                          fee: fees,
+                        );
+
+                        if (viewModel.response != null && viewModel.response!.status == 'success') {
+                          Navigator.pushNamed(context, AppRoutes.studentDetailsSuccess);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(viewModel.error ?? 'Failed to submit subscription. Please try again.'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColor.btncolor, // Button background color
+                        backgroundColor: AppColor.btncolor,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12.0),
                         ),
-                        padding: EdgeInsets.symmetric(vertical: 14.h), // Adjust vertical padding
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
                       ),
                       child: Text(
                         'Submit',
@@ -142,7 +167,6 @@ class CustomSubscriptionDialog extends StatelessWidget {
 
   Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
     final DateTime? selectedDate = await showDatePicker(
-
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(1900),
@@ -151,21 +175,18 @@ class CustomSubscriptionDialog extends StatelessWidget {
         return Theme(
           data: ThemeData.light().copyWith(
             colorScheme: ColorScheme.light(
-              primary: AppColor.whiteColor,
-              onPrimary: Colors.white,
+              primary: AppColor.btncolor,
+              onPrimary: AppColor.whiteColor,
             ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                backgroundColor: AppColor.btncolor, // Add your custom background color
-                // foregroundColor: AppColor.btncolor, // Text color
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0), // Padding
+                foregroundColor: AppColor.whiteColor,
+                backgroundColor: AppColor.btncolor,
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0), // Border radius
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-            ),
-            buttonTheme: ButtonThemeData(
-              buttonColor: AppColor.btncolor, // Add button color here if needed
             ),
           ),
           child: child!,
@@ -174,14 +195,11 @@ class CustomSubscriptionDialog extends StatelessWidget {
     );
 
     if (selectedDate != null) {
-      // Format the date as YYYY-MM-DD
       final DateFormat formatter = DateFormat('yyyy-MM-dd');
       final String formattedDate = formatter.format(selectedDate);
 
-      // Set the formatted date to the controller
       controller.text = formattedDate;
 
-      // Show a Snackbar with the selected date for feedback
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Selected date: $formattedDate'),
@@ -189,7 +207,6 @@ class CustomSubscriptionDialog extends StatelessWidget {
         ),
       );
     } else {
-      // Optionally handle the case when no date is selected
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('No date selected'),
@@ -198,48 +215,4 @@ class CustomSubscriptionDialog extends StatelessWidget {
       );
     }
   }
-
-  // Future<void> _selectEndDate(BuildContext context) async {
-  //   final DateTime? picked = await showDatePicker(
-  //     context: context,
-  //    // initialDate: EndDate,
-  //     firstDate: DateTime.now(),
-  //     lastDate: DateTime(2101),
-  //     builder: (BuildContext context, Widget? child) {
-  //       return Theme(
-  //         data: ThemeData.light().copyWith(
-  //           colorScheme: ColorScheme.light(
-  //             primary: AppColor.btncolor,
-  //             onPrimary: Colors.white,
-  //           ),
-  //           textButtonTheme: TextButtonThemeData(
-  //             style: TextButton.styleFrom(
-  //               backgroundColor: Colors.blue, // Add your custom background color
-  //               foregroundColor: AppColor.btncolor, // Text color
-  //               padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0), // Padding
-  //               shape: RoundedRectangleBorder(
-  //                 borderRadius: BorderRadius.circular(8.0), // Border radius
-  //               ),
-  //             ),
-  //           ),
-  //           buttonTheme: ButtonThemeData(
-  //             buttonColor: Colors.blue, // Add button color here if needed
-  //           ),
-  //         ),
-  //         child: child!,
-  //       );
-  //     },
-  //   );
-  //
-  //   // if (picked != null && picked != EndDate) {
-  //   //   setState(() {
-  //   //     EndDate = picked;
-  //   //     isEndDate = true;
-  //   //     if (StartDate.day == EndDate.day) {
-  //   //       EndSessionsList.remove('Session 1');
-  //   //     }
-  //   //     calculateNumberOfDays();
-  //   //   });
-  //   // }
-  // }
 }

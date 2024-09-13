@@ -1,7 +1,7 @@
 // lib/viewmodels/notification_viewmodel.dart
 
 import 'package:flutter/material.dart';
-import '../../../utils/constants/logger.dart';
+import '../../../utils/logger.dart';
 import '../data/notification_model.dart';
 import '../data/notification_repository.dart';
 

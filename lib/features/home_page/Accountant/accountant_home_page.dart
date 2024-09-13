@@ -301,7 +301,7 @@ class _AccountantHomePageState extends State<AccountantHomePage> {
                       physics: NeverScrollableScrollPhysics(),
                       itemBuilder: (context, index) {
                         final notification = notificationViewModel.notifications[index];
-                        print('Displaying notification: ${notification.studentName}');
+                      //  print('Displaying notification: ${notification.studentName}');
                         return GestureDetector(
                           onTap: () {
                             print('Notification tapped: ${notification.studentName}');

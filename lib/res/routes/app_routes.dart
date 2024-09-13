@@ -58,15 +58,22 @@ class AppRoutes {
       case availableStudents:
         return MaterialPageRoute(builder: (_) => AvailableStudentScreen());
       case studentDetailsEdit:
-        return MaterialPageRoute(builder: (_) => StudentRecordEdit());
-      case studentsdetails:
-      // Ensure that the arguments are correctly cast to int
-        final int studentId = settings.arguments is int
-            ? settings.arguments as int
-            : int.tryParse(settings.arguments as String ?? '') ?? 0;
+        final int? studentId = settings.arguments as int?;
         return MaterialPageRoute(
-          builder: (_) => StudentDetailsPage(studentId: studentId),
+          builder: (_) => StudentRecordEdit(studentId: studentId),
         );
+      case studentsdetails:
+        try {
+          final int studentId = settings.arguments is int
+              ? settings.arguments as int
+              : int.tryParse(settings.arguments as String ?? '') ?? 0;
+          return MaterialPageRoute(
+            builder: (_) => StudentDetailsPage(studentId: studentId),
+          );
+        } catch (e) {
+          // Handle any errors and return an error route
+          return _errorRoute();
+        }
       case studentDetailsSuccess:
         return MaterialPageRoute(builder: (_) => SuccessStudentDetailsScreen());
       case printPaymentScreen:

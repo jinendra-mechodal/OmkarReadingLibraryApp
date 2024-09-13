@@ -95,7 +95,9 @@ class SuccessRegistrationScreen extends StatelessWidget {
               InkWell(
                 onTap: (){
                   // Redirect to Home page
-                  Navigator.pushNamed(context, AppRoutes.home);
+                 // Navigator.pushNamed(context, AppRoutes.home);
+                  Navigator.pop(context);
+                  Navigator.pop(context);
                 },
                 child: Container(
                   width: double.infinity,

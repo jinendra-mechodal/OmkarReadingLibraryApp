@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:library_app/res/app_url/app_url.dart';
 import '../../../data/app_excaption.dart';
-import '../../../utils/constants/logger.dart';
+import '../../../utils/logger.dart';
 import '../../../utils/utils.dart';
 import 'login_model.dart';
 

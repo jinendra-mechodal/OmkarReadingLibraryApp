@@ -37,12 +37,34 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final FocusNode _aadharNumberFocusNode = FocusNode();
   final FocusNode _addressFocusNode = FocusNode();
 
+
   Future<void> _selectDate(TextEditingController controller) async {
     final DateTime? selectedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime(2100),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColor.btncolor,
+              onPrimary: AppColor.whiteColor,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColor.whiteColor,
+                backgroundColor: AppColor.btncolor,
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (selectedDate != null) {

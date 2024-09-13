@@ -3,7 +3,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-import '../../../utils/constants/logger.dart';
+import '../../../utils/logger.dart';
 import 'notification_model.dart';
 
 class NotificationRepository {

@@ -14,7 +14,11 @@ import 'features/home_page/Superwiser/data/SuperwiserStudentDashboardRepository.
 import 'features/login/data/login_repository.dart';
 import 'features/login/view_models/login_usecase.dart';
 import 'features/notification/ViewModel/notification_viewmodel.dart';
+import 'features/payment/ViewModal/PrintPaymentViewModel.dart';
 import 'features/records/student_record/view_modal_studentrecord/student_record_view_model.dart';
+import 'features/records/student_record_details/Widgets/data/subscription_repository.dart';
+import 'features/records/student_record_details/Widgets/ViewModel/subscription_view_model.dart';
+import 'features/records/student_record_details/student_details_view_model/student_details_view_model.dart';
 import 'features/registration/data/registration_repository.dart';
 import 'features/registration/presentation/viewmodels/registration_view_model.dart';
 import 'features/report/domain/student_report_view_model.dart';
@@ -33,31 +37,37 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (context) => LoginViewModel(AuthRepository()), // Ensure AuthRepository is correctly implemented
+          create: (context) => LoginViewModel(
+              AuthRepository()), // Ensure AuthRepository is correctly implemented
         ),
         ChangeNotifierProvider(
-          create: (context) => RegistrationViewModel(RegistrationRepository()), // Ensure RegistrationRepository is correctly implemented
+          create: (context) => RegistrationViewModel(
+              RegistrationRepository()), // Ensure RegistrationRepository is correctly implemented
         ),
         ChangeNotifierProvider(
-          create: (context) => StudentReportViewModel(), // Ensure StudentReportViewModel is correctly implemented
+          create: (context) =>
+              StudentReportViewModel(), // Ensure StudentReportViewModel is correctly implemented
         ),
         ChangeNotifierProvider(
-          create: (context) => StudentRecordViewModel(), // Ensure StudentRecordViewModel is correctly implemented
+          create: (context) =>
+              StudentRecordViewModel(), // Ensure StudentRecordViewModel is correctly implemented
         ),
         ChangeNotifierProvider(
-          create: (context) => NotificationViewModel(), // Ensure NotificationViewModel is correctly implemented
+          create: (context) =>
+              NotificationViewModel(), // Ensure NotificationViewModel is correctly implemented
         ),
         ChangeNotifierProvider(
-          create: (context) => StudentViewModel(context.read<StudentRepository>()), // Ensure StudentViewModel is correctly implemented
+          create: (context) => StudentViewModel(context.read<
+              StudentRepository>()), // Ensure StudentViewModel is correctly implemented
         ),
-
         Provider(
-          create: (_) => StudentRepository(), // Ensure StudentRepository is correctly implemented
+          create: (_) =>
+              StudentRepository(), // Ensure StudentRepository is correctly implemented
         ),
         ChangeNotifierProvider(
-          create: (context) => StudentViewModel(context.read<StudentRepository>()), // Ensure StudentViewModel is correctly implemented
+          create: (context) => StudentViewModel(context.read<
+              StudentRepository>()), // Ensure StudentViewModel is correctly implemented
         ),
-
         ChangeNotifierProvider(
           create: (context) => StudentDashboardViewModel(),
         ),
@@ -66,9 +76,19 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<SupervisorStudentDashboardViewModel>(
           create: (context) => SupervisorStudentDashboardViewModel(
-            Provider.of<SupervisorStudentDashboardRepository>(context, listen: false),
+            Provider.of<SupervisorStudentDashboardRepository>(context,
+                listen: false),
           ),
         ),
+
+        ChangeNotifierProvider(create: (_) => StudentDetailsViewModel()),
+        ChangeNotifierProvider(
+          create: (context) => SubscriptionViewModel(
+            SubscriptionRepository(),
+          ),
+        ),
+
+        ChangeNotifierProvider(create: (_) => PrintPaymentViewModel()),
       ],
       child: ScreenUtilInit(
         designSize: const Size(360, 690),

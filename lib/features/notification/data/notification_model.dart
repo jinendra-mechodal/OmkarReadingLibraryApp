@@ -1,6 +1,6 @@
 // lib/models/notification_model.dart
 
-import '../../../utils/constants/logger.dart';
+import '../../../utils/logger.dart';
 
 class NotificationResponse {
   final String status;

@@ -1,7 +1,7 @@
 // lib/models/Printstudent_record_model.dart
 import 'dart:convert';
 
-class StudentRecord {
+class PrintStudentRecord {
   final String id;
   final String userId;
   final String name;
@@ -17,7 +17,7 @@ class StudentRecord {
   final String fee;
   final String createdAt;
 
-  StudentRecord({
+  PrintStudentRecord({
     required this.id,
     required this.userId,
     required this.name,
@@ -34,8 +34,8 @@ class StudentRecord {
     required this.createdAt,
   });
 
-  factory StudentRecord.fromJson(Map<String, dynamic> json) {
-    return StudentRecord(
+  factory PrintStudentRecord.fromJson(Map<String, dynamic> json) {
+    return PrintStudentRecord(
       id: json['id'],
       userId: json['user_id'],
       name: json['name'],
@@ -46,10 +46,12 @@ class StudentRecord {
       date: json['date'],
       updateAt: json['update_at'],
       studentId: json['student_id'],
-      startDate: json['start_date'],
-      endDate: json['end_date'],
-      fee: json['fee'],
-      createdAt: json['created_at'],
+      startDate: json['start_date'] ?? 'N/A',
+      endDate: json['end_date'] ?? 'N/A',
+      fee: json['fee'] ?? 'N/A',
+      createdAt: json['created_at'] ?? 'N/A',
     );
   }
 }
+
+

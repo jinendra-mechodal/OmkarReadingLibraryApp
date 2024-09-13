@@ -26,6 +26,57 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
   // Variable to store fetched reports
   List<StudentReport> _reports = [];
 
+  // Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
+  //   final DateTime? selectedDate = await showDatePicker(
+  //     context: context,
+  //     initialDate: DateTime.now(),
+  //     firstDate: DateTime(1900),
+  //     lastDate: DateTime(2100),
+  //     builder: (BuildContext context, Widget? child) {
+  //       return Theme(
+  //         data: ThemeData.light().copyWith(
+  //           colorScheme: ColorScheme.light(
+  //             primary: AppColor.btncolor,
+  //             onPrimary: AppColor.whiteColor,
+  //           ),
+  //           textButtonTheme: TextButtonThemeData(
+  //             style: TextButton.styleFrom(
+  //               foregroundColor: AppColor.whiteColor,
+  //               backgroundColor: AppColor.btncolor,
+  //               padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+  //               shape: RoundedRectangleBorder(
+  //                 borderRadius: BorderRadius.circular(8.0),
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //         child: child!,
+  //       );
+  //     },
+  //   );
+  //
+  //   if (selectedDate != null) {
+  //     final DateFormat formatter = DateFormat('yyyy-MM-dd');
+  //     final String formattedDate = formatter.format(selectedDate);
+  //
+  //     controller.text = formattedDate;
+  //
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Selected date: $formattedDate'),
+  //         duration: Duration(seconds: 2),
+  //       ),
+  //     );
+  //   } else {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('No date selected'),
+  //         duration: Duration(seconds: 2),
+  //       ),
+  //     );
+  //   }
+  // }
+
   // Function to show date picker and update the selected date
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     final DateTime? selectedDate = await showDatePicker(
@@ -33,6 +84,28 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2050),
+          builder: (BuildContext context, Widget? child) {
+            return Theme(
+              data: ThemeData.light().copyWith(
+                colorScheme: ColorScheme.light(
+                  primary: AppColor.btncolor,
+                  onPrimary: AppColor.whiteColor,
+                ),
+                textButtonTheme: TextButtonThemeData(
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColor.whiteColor,
+                    backgroundColor: AppColor.btncolor,
+                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                ),
+              ),
+              child: child!,
+            );
+          },
+
     );
 
     if (selectedDate != null) {
@@ -302,7 +375,7 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
                   onTap: () {
                     // Handle tap
                     _handleTap(report.studentId);
-                    Navigator.pushNamed(context, AppRoutes.studentsdetails);
+                  //  Navigator.pushNamed(context, AppRoutes.studentsdetails);
                   },
                   child: Container(
                     margin: EdgeInsets.all(5.r),

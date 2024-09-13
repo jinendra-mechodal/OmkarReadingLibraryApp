@@ -6,7 +6,7 @@ import '../../../../data/app_excaption.dart';
 import '../../../../res/colors/app_color.dart';
 import '../../../../res/fonts/text_style.dart';
 import '../../../../res/routes/app_routes.dart';
-import '../../../../utils/constants/logger.dart';
+import '../../../../utils/logger.dart';
 import '../../../../utils/utils.dart';
 import '../../data/login_repository.dart';
 import '../../view_models/login_usecase.dart';

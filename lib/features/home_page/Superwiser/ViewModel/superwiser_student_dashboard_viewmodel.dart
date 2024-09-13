@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../utils/constants/logger.dart';
+import '../../../../utils/logger.dart';
 import '../data/SuperwiserStudentDashboardRepository.dart';
 import '../data/superwiser_student_dashboard_model.dart';
 

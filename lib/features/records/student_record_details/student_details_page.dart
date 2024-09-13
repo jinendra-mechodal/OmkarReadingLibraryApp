@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart'; // Ensure provider is added to your dependencies
 
 import '../../../res/colors/app_color.dart';
 import '../../../res/fonts/text_style.dart';
 import '../../../res/routes/app_routes.dart';
+import '../../../utils/logger.dart';
+import '../student_record_edit/data/student_service.dart';
 import 'Widgets/CustomSubscriptionDialog.dart';
+import 'student_details_view_model/student_details_view_model.dart';
 
 class StudentDetailsPage extends StatefulWidget {
   final int studentId;
@@ -20,9 +24,35 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
   @override
   void initState() {
     super.initState();
-    // Print the studentId to the console
-    print("Student ID: ${widget.studentId}");
+    // Schedule fetchStudentDetails after the current frame has been rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchStudentDetails();
+      _fetchSubscriptionDetails();
+    });
+  }
 
+  Future<void> _fetchStudentDetails() async {
+    final viewModel = Provider.of<StudentDetailsViewModel>(context, listen: false);
+
+    print('Fetching details for student ID: ${widget.studentId}');
+    try {
+      await viewModel.fetchStudentDetails(widget.studentId);
+      print('Student details fetched successfully for ID: ${widget.studentId}');
+      print('Student: ${viewModel.student}');
+      print('Subscriptions: ${viewModel.subscriptions}');
+    } catch (e) {
+      print('Error fetching student details for ID: ${widget.studentId}, Error: $e');
+    }
+  }
+
+  Future<void> _fetchSubscriptionDetails() async {
+    try {
+      final viewModel = Provider.of<StudentDetailsViewModel>(context, listen: false);
+      await viewModel.fetchSubscriptionDetails(widget.studentId);
+      print('Subscription details fetched successfully for ID: ${widget.studentId}');
+    } catch (e) {
+      print('Error fetching subscription details for ID: ${widget.studentId}, Error: $e');
+    }
   }
 
   @override
@@ -36,10 +66,10 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
             color: AppColor.whiteColor,
             boxShadow: [
               BoxShadow(
-                color: Colors.black12.withOpacity(0.02), // Shadow color
-                spreadRadius: 1, // Spread radius
-                blurRadius: 4, // Blur radius
-                offset: Offset(0, 4), // Shadow offset (bottom side)
+                color: Colors.black12.withOpacity(0.02),
+                spreadRadius: 1,
+                blurRadius: 4,
+                offset: Offset(0, 4),
               ),
             ],
           ),
@@ -55,9 +85,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
             actions: [
               InkWell(
                 onTap: () {
-                 print("tap");
-                // Navigator.pushNamed(context, AppRoutes.studentRecordScreen);
-                 Navigator.pop(context);
+                  Navigator.pop(context);
                 },
                 child: Row(
                   children: [
@@ -79,319 +107,365 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                 ),
               ),
             ],
-            automaticallyImplyLeading: false, // Hides the back button
+            automaticallyImplyLeading: false,
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              height: 50.h,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.black.withOpacity(0.05),
-                  width: 1.0,
-                ),
-                borderRadius: BorderRadius.circular(4.0),
-              ),
-              child: Padding(
-                padding: EdgeInsets.only(
-                  right: 20.w,
-                  left: 30.w,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+      body: Consumer<StudentDetailsViewModel>(
+        builder: (context, viewModel, child) {
+          if (viewModel.isLoading) {
+            return Center(child: CircularProgressIndicator(
+              color: AppColor.btncolor,
+            ));
+          }
+
+          if (viewModel.errorMessage != null) {
+            return Center(child: Text('Error: ${viewModel.errorMessage}'));
+          }
+
+          final student = viewModel.student;
+          final subscriptions = viewModel.subscriptions;
+
+          if (student == null) {
+            return Center(child: Text('No student data available'));
+          }
+
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 50.h,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.black.withOpacity(0.05),
+                      width: 1.0,
+                    ),
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      right: 20.w,
+                      left: 30.w,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          "Chetan Parmar",
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolor_blue,
-                            fontSize: 14.sp,
-                          ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              student.name,
+                              style: LexendtextFont500.copyWith(
+                                color: AppColor.textcolor_blue,
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                            Text(
+                              "Register At ${student.date}",
+                              style: mulishRegularFont300.copyWith(
+                                color: AppColor.textcolor_gray,
+                                fontSize: 10.sp,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          "Register At 28-Jul-2023",
-                          style: mulishRegularFont300.copyWith(
-                            color: AppColor.textcolor_gray,
-                            fontSize: 10.sp,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            InkWell(
+                              onTap: () async {
+                                print('Delete icon tapped');
+                                bool? shouldDelete = await _showDeleteConfirmationDialog();
+                                if (shouldDelete ?? false) {
+                                  try {
+                                    // Implement deletion logic
+                                    print('Delete confirmed for student ID: ${widget.studentId}');
+                                    final studentService = StudentService();
+                                    await studentService.deleteStudent(widget.studentId!);
+
+                                    // Show success message
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Student deleted successfully')),
+                                    );
+
+                                    // Optionally, navigate back or refresh the list
+                                   // Navigator.pop(context);
+                                    Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.studentRecordScreen,
+                                      arguments: widget.studentId, // Pass student ID as argument
+                                    );
+
+                                  } catch (e) {
+                                    print('Error deleting student: $e');
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Error deleting student: $e')),
+                                    );
+                                  }
+                                }
+                              },
+
+                              child: Image.asset(
+                                "assets/icons/dlt-icon.png",
+                                height: 25.h,
+                                width: 25.w,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 10.w,
+                            ),
+                            InkWell(
+                              onTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.studentDetailsEdit,
+                                  arguments: widget.studentId, // Pass student ID as argument
+                                );
+                                print('Edit icon tapped');
+                                logDebug('Navigating to student details to edit ${widget.studentId}');
+                               // Navigator.pushNamed(context, AppRoutes.studentDetailsEdit);
+                              },
+                              child: Image.asset(
+                                "assets/icons/edit-icon.png",
+                                height: 25.h,
+                                width: 25.w,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                  ),
+                ),
+                Container(
+                  height: 165.h,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.black.withOpacity(0.05),
+                      width: 1.0,
+                    ),
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: 30.w,
+                      right: 20.w,
+                    ),
+                    child: Column(
                       children: [
-                        InkWell(
-                          onTap: () {
-                            // Handle delete icon tap
-                            print('Delete icon tapped');
-                          },
-                          child: Image.asset(
-                            "assets/icons/dlt-icon.png",
-                            height: 25.h,
-                            width: 25.w,
-                          ),
+                        SizedBox(
+                          height: 10.h,
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              "Student Name : ",
+                              style: LexendtextFont500.copyWith(
+                                color: AppColor.textcolor_gray,
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                            Text(
+                              student.name,
+                              style: LexendtextFont400.copyWith(
+                                color: AppColor.textcolor_gray,
+                                fontSize: 12.sp,
+                              ),
+                            )
+                          ],
                         ),
                         SizedBox(
-                          width: 10.w,
+                          height: 10.h,
                         ),
-                        InkWell(
-                          onTap: () {
-                            // Handle edit icon tap
-                            print('Edit icon tapped');
-                            Navigator.pushNamed(context, AppRoutes.studentDetailsEdit);
-
-                          },
-                          child: Image.asset(
-                            "assets/icons/edit-icon.png",
-                            height: 25.h,
-                            width: 25.w,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Container(
-              height: 165.h,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.black.withOpacity(0.05),
-                  width: 1.0,
-                ),
-                borderRadius: BorderRadius.circular(4.0),
-              ),
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: 30.w,
-                  right: 20.w,
-                ),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 10.h,
-                    ),
-                    Row(
-                      children: [
-                        Text(
-                          "Student Name : ",
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolor_gray,
-                            fontSize: 12.sp,
-                          ),
-                        ),
-                        Text(
-                          "Chetan Parmar",
-                          style: LexendtextFont400.copyWith(
-                            color: AppColor.textcolor_gray,
-                            fontSize: 12.sp,
-                          ),
-                        )
-                      ],
-                    ),
-                    SizedBox(
-                      height: 10.h,
-                    ),
-                    Row(
-                      children: [
-                        Text(
-                          "Serial Number : ",
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolor_gray,
-                            fontSize: 12.sp,
-                          ),
-                        ),
-                        Text(
-                          "3245",
-                          style: LexendtextFont400.copyWith(
-                            color: AppColor.textcolor_gray,
-                            fontSize: 12.sp,
-                          ),
-                        )
-                      ],
-                    ),
-                    SizedBox(
-                      height: 10.h,
-                    ),
-                    Row(
-                      children: [
-                        Text(
-                          "Contact Details: ",
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolor_gray,
-                            fontSize: 12.sp,
-                          ),
-                        ),
-                        Text(
-                          "98765 43210",
-                          style: LexendtextFont400.copyWith(
-                            color: AppColor.textcolor_gray,
-                            fontSize: 12.sp,
-                          ),
-                        )
-                      ],
-                    ),
-                    SizedBox(
-                      height: 10.h,
-                    ),
-                    Row(
-                      children: [
-                        Text(
-                          "Aadhar number : ",
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolor_gray,
-                            fontSize: 12.sp,
-                          ),
-                        ),
-                        Text(
-                          "999 9999 9999",
-                          style: LexendtextFont400.copyWith(
-                            color: AppColor.textcolor_gray,
-                            fontSize: 12.sp,
-                          ),
-                        )
-                      ],
-                    ),
-                    SizedBox(
-                      height: 10.h,
-                    ),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Address : ",
-                          style: LexendtextFont500.copyWith(
-                            color: AppColor.textcolor_gray,
-                            fontSize: 12.sp,
-                          ),
-                        ),
-                        Container(
-                          width: 210.w,
-                          child: Text(
-                            "With Lorem Ipzum's tool, you can insert texts directly with the ",
-                            style: LexendtextFont400.copyWith(
-                              color: AppColor.textcolor_gray,
-                              fontSize: 12.sp,
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                    SizedBox(
-                      height: 10.h,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 30.h,
-            ),
-
-            // Record
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16,
-              ),
-              child: Text(
-                "Record",
-                style: LexendtextFont500.copyWith(
-                  color: AppColor.textcolor_blue,
-                  fontSize: 14.sp,
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 18.h,
-            ),
-            Padding(
-              padding: EdgeInsets.only(
-                left: 16.w,
-                right: 22.w,
-              ),
-              child: Column(
-                children: [
-                  InkWell(
-                    onTap: () {
-                      // Redirect to studentsdetails page
-                      //Navigator.pushNamed(context, AppRoutes.studentsdetails);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(16.w),
-                      decoration: BoxDecoration(
-                        color: AppColor.bglightgray,
-                        // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      width: double.infinity,
-                      height: 70.h,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '22-12-2024 To 22-01-2025',
-                                style: LexendtextFont500.copyWith(
-                                  color: AppColor.textcolorBlack,
-                                  fontSize: 14.sp,
-                                ),
+                        Row(
+                          children: [
+                            Text(
+                              "Serial Number : ",
+                              style: LexendtextFont500.copyWith(
+                                color: AppColor.textcolor_gray,
+                                fontSize: 12.sp,
                               ),
-                              Text(
-                                "Upgraded At At 28-Jul-2023",
-                                // "Subscription End : $endDate",
-                                style: mulishRegularFont300.copyWith(
+                            ),
+                            Text(
+                              student.serialNo,
+                              style: LexendtextFont400.copyWith(
+                                color: AppColor.textcolor_gray,
+                                fontSize: 12.sp,
+                              ),
+                            )
+                          ],
+                        ),
+                        SizedBox(
+                          height: 10.h,
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              "Contact Details: ",
+                              style: LexendtextFont500.copyWith(
+                                color: AppColor.textcolor_gray,
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                            Text(
+                              student.contact,
+                              style: LexendtextFont400.copyWith(
+                                color: AppColor.textcolor_gray,
+                                fontSize: 12.sp,
+                              ),
+                            )
+                          ],
+                        ),
+                        SizedBox(
+                          height: 10.h,
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              "Aadhar number : ",
+                              style: LexendtextFont500.copyWith(
+                                color: AppColor.textcolor_gray,
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                            Text(
+                              student.aadharNo,
+                              style: LexendtextFont400.copyWith(
+                                color: AppColor.textcolor_gray,
+                                fontSize: 12.sp,
+                              ),
+                            )
+                          ],
+                        ),
+                        SizedBox(
+                          height: 10.h,
+                        ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Address : ",
+                              style: LexendtextFont500.copyWith(
+                                color: AppColor.textcolor_gray,
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                            Container(
+                              width: 210.w,
+                              child: Text(
+                                student.address,
+                                style: LexendtextFont400.copyWith(
                                   color: AppColor.textcolor_gray,
-                                  fontSize: 10.sp,
+                                  fontSize: 12.sp,
                                 ),
                               ),
-                            ],
-                          ),
-                          Text(
-                            "₹1200",
-                            style: LexendtextFont500.copyWith(
-                              color: AppColor.textcolorBlack,
-                              fontSize: 14.sp,
-                            ),
-                          ),
-                        ],
-                      ),
+                            )
+                          ],
+                        ),
+                        SizedBox(
+                          height: 10.h,
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(
-                    height: 10.h,
+                ),
+                SizedBox(
+                  height: 30.h,
+                ),
+                // Subscription records section
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    "Records",
+                    style: LexendtextFont500.copyWith(
+                      color: AppColor.textcolor_blue,
+                      fontSize: 14.sp,
+                    ),
                   ),
-
-                ],
-              ),
+                ),
+                SizedBox(
+                  height: 18.h,
+                ),
+                subscriptions.isEmpty
+                    ? Center(child: Text('No subscription records available'))
+                    : Padding(
+                  padding: EdgeInsets.only(left: 16.w, right: 22.w),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: subscriptions.map((subscription) {
+                        return InkWell(
+                          onTap: () {
+                            // Implement navigation or actions here
+                            print('Subscription tapped: ${subscription.startDate} To ${subscription.endDate}');
+                          },
+                          child: Container(
+                            margin: EdgeInsets.all(5.r),
+                            padding: EdgeInsets.all(16.w),
+                            decoration: BoxDecoration(
+                              color: AppColor.bglightgray,
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            width: double.infinity,
+                            height: 70.h,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${subscription.startDate} To ${subscription.endDate}',
+                                      style: LexendtextFont500.copyWith(
+                                        color: AppColor.textcolorBlack,
+                                        fontSize: 14.sp,
+                                      ),
+                                    ),
+                                    Text(
+                                      "Upgraded At ${subscription.createdAt}",
+                                      style: mulishRegularFont300.copyWith(
+                                        color: AppColor.textcolor_gray,
+                                        fontSize: 10.sp,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  "₹${subscription.fee}",
+                                  style: LexendtextFont500.copyWith(
+                                    color: AppColor.textcolorBlack,
+                                    fontSize: 14.sp,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
       bottomSheet: Container(
         width: double.infinity,
         padding: EdgeInsets.all(16.0),
-        color: Colors.white, // Replace with AppColor.whiteColor
+        color: Colors.white,
         child: ElevatedButton(
           onPressed: () {
             _showCustomDialog(context);
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColor.btncolor,// Replace with AppColor.btncolor
+            backgroundColor: AppColor.btncolor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.0),
             ),
@@ -400,12 +474,86 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
           child: Text(
             'Add New Subscription',
             style: TextStyle(
-              color: Colors.white, // Replace with AppColor.whiteColor
+              color: Colors.white,
               fontSize: 16.0,
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Future<bool?> _showDeleteConfirmationDialog() async {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm Deletion'),
+          content: Text('Are you sure you want to delete this student?'),
+          actions: [
+            // TextButton(
+            //   onPressed: () {
+            //     Navigator.of(context).pop(false);
+            //   },
+            //   child: Text('Cancel'),
+            // ),
+            // TextButton(
+            //   onPressed: () {
+            //     Navigator.of(context).pop(true);
+            //   },
+            //   child: Text('Delete'),
+            // ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                InkWell(
+                  onTap: () => Navigator.of(context).pop(false),
+                  child: Container(
+                    width: 100.w,
+                    // width: double.infinity,
+                    height: 40.h, // Adjust height as needed
+                    decoration: BoxDecoration(
+                      color: AppColor.btncolor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Cancel',
+                        style: LexendtextFont300.copyWith(
+                          color: AppColor.whiteColor,
+                          fontSize: 14.sp,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () => Navigator.of(context).pop(true),
+                  child: Container(
+                    // width: double.infinity,
+                    width: 100.w,
+                    height: 40.h, // Adjust height as needed
+                    decoration: BoxDecoration(
+                      color: AppColor.btncolor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Delete',
+                        style: LexendtextFont300.copyWith(
+                          color: AppColor.whiteColor,
+                          fontSize: 14.sp,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -421,9 +569,9 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
           startDateController: _startDateController,
           endDateController: _endDateController,
           feesController: _feesController,
+          studentId: widget.studentId,
         );
       },
     );
   }
-
 }

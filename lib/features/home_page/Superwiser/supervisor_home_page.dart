@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../res/colors/app_color.dart';
 import '../../../../../res/fonts/text_style.dart';
 import '../../../res/routes/app_routes.dart';
-import '../../../utils/constants/logger.dart';
+import '../../../utils/logger.dart';
 import '../../../utils/custom_navigator_observer.dart';
 import '../../available_students/domain/student_view_model.dart';
 import '../../login/view_models/login_usecase.dart';

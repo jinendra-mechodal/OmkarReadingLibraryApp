@@ -5,8 +5,11 @@ import 'package:intl/intl.dart';
 import '../../../../res/colors/app_color.dart';
 import '../../../../res/fonts/text_style.dart';
 import '../../../../res/routes/app_routes.dart';
+import '../../../../utils/logger.dart';
+import '../../../../utils/shared_preferences_helper.dart';
 import '../../../registration/presentation/widgets/registration_form.dart';
 import '../../../registration/presentation/widgets/submit_button.dart';
+import '../../data/PrintStudentRecordRepository.dart';
 import '../widgets/custom_dropdown_student.dart';
 import '../widgets/custom_dropdown_subscription.dart';
 
@@ -18,141 +21,40 @@ class PrintPaymentScreen extends StatefulWidget {
 }
 
 class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
-  final List<String> _studentNames = [
-    'Chetan Parmar',
-    'Riyaz Khokhar',
-    'Darshan Vaghani',
-    'Divyesh Sonagara',
-    'Chetan Parmar',
-    'Riyaz Khokhar',
-    'Darshan Vaghani',
-    'Divyesh Sonagara',
-    'Chetan Parmar',
-    'Riyaz Khokhar',
-    'Darshan Vaghani',
-    'Divyesh Sonagara',
-    'Chetan Parmar',
-    'Riyaz Khokhar',
-    'Darshan Vaghani',
-    'Divyesh Sonagara',
-  ];
+  final PrintStudentRecordRepository _repository =
+      PrintStudentRecordRepository();
 
-  final List<Map<String, String>> _studentsubscription = [
-    {
-      'subscriptionPeriod': '22-12-2024 To 22-01-2025',
-      'upgradedAt': '28-Jul-2023',
-      'amount': '₹1200',
-    },
-    {
-      'subscriptionPeriod': '01-01-2024 To 01-02-2024',
-      'upgradedAt': '15-Dec-2023',
-      'amount': '₹1500',
-    },
-    {
-      'subscriptionPeriod': '05-02-2024 To 05-03-2024',
-      'upgradedAt': '25-Jan-2024',
-      'amount': '₹1800',
-    },
-    {
-      'subscriptionPeriod': '10-03-2024 To 10-04-2024',
-      'upgradedAt': '05-Feb-2024',
-      'amount': '₹2000',
-    },
-    {
-      'subscriptionPeriod': '20-04-2024 To 20-05-2024',
-      'upgradedAt': '10-Mar-2024',
-      'amount': '₹1700',
-    },
-    {
-      'subscriptionPeriod': '01-06-2024 To 01-07-2024',
-      'upgradedAt': '01-May-2024',
-      'amount': '₹1600',
-    },
-    {
-      'subscriptionPeriod': '15-07-2024 To 15-08-2024',
-      'upgradedAt': '15-Jun-2024',
-      'amount': '₹1900',
-    },
-    {
-      'subscriptionPeriod': '01-09-2024 To 01-10-2024',
-      'upgradedAt': '01-Aug-2024',
-      'amount': '₹2000',
-    },
-    {
-      'subscriptionPeriod': '10-10-2024 To 10-11-2024',
-      'upgradedAt': '15-Sep-2024',
-      'amount': '₹2100',
-    },
-    {
-      'subscriptionPeriod': '20-11-2024 To 20-12-2024',
-      'upgradedAt': '01-Nov-2024',
-      'amount': '₹2200',
-    },
-  ];
-
+  List<String> _studentNames = [];
+  Map<String, String> _studentMap = {};
+  String? _selectedStudentId;
+  List<Map<String, String>> _studentsubscription = [];
   String? _selectedStudent;
   String? _selectedSubscription;
 
   final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _searchSubscriptionController = TextEditingController();
-
+  final TextEditingController _searchSubscriptionController =
+      TextEditingController();
   List<String> _filteredStudentNames = [];
   List<Map<String, String>> _filteredSubscriptions = [];
 
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
   final TextEditingController _feesController = TextEditingController();
-
   final FocusNode _startDateFocusNode = FocusNode();
   final FocusNode _endDateFocusNode = FocusNode();
   final FocusNode _feesFocusNode = FocusNode();
 
-  Future<void> _selectDate(TextEditingController controller) async {
-    final DateTime? selectedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-      builder: (BuildContext context, Widget? child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            primaryColor: Colors.blue, // Color for the selected date
-            hintColor: AppColor.btncolor, // Color for the buttons
-            buttonTheme: ButtonThemeData(
-              textTheme: ButtonTextTheme.primary,
-            ),
-            dialogBackgroundColor: Colors.white, // Background color
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: AppColor.btncolor, // Color of the buttons
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (selectedDate != null) {
-      setState(() {
-        // Format date as DD-MM-YYYY
-        final DateFormat formatter = DateFormat('dd-MM-yyyy');
-        final String formattedDate = formatter.format(selectedDate);
-        controller.text = formattedDate;
-      });
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    _filteredStudentNames = _studentNames;
-    _filteredSubscriptions = _studentsubscription;
+    _fetchStudentRecords();
 
     _searchController.addListener(() {
       setState(() {
         _filteredStudentNames = _studentNames
-            .where((name) => name.toLowerCase().contains(_searchController.text.toLowerCase()))
+            .where((name) => name
+                .toLowerCase()
+                .contains(_searchController.text.toLowerCase()))
             .toList();
       });
     });
@@ -160,10 +62,102 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
     _searchSubscriptionController.addListener(() {
       setState(() {
         _filteredSubscriptions = _studentsubscription
-            .where((subscription) => subscription['subscriptionPeriod']?.toLowerCase().contains(_searchSubscriptionController.text.toLowerCase()) ?? false)
+            .where((subscription) =>
+                subscription['subscriptionPeriod']?.toLowerCase().contains(
+                    _searchSubscriptionController.text.toLowerCase()) ??
+                false)
             .toList();
       });
     });
+  }
+
+  Future<void> _fetchStudentRecords() async {
+    try {
+      final userIdString = await SharedPreferencesHelper.getUserId();
+      final userId = userIdString != null ? int.tryParse(userIdString) : null;
+
+      if (userId != null) {
+        print('Fetching student records for User ID: $userId');
+        final records = await _repository.fetchStudentRecord(userId);
+        print('Fetched student records: $records');
+
+        setState(() {
+          _studentMap = {
+            for (var record in records) record.name: record.studentId
+          };
+          _studentNames = _studentMap.keys.toList();
+          _filteredStudentNames = _studentNames;
+        });
+      } else {
+        print('User ID is null or invalid');
+      }
+    } catch (e) {
+      print('Error fetching student records: $e');
+    }
+  }
+
+  Future<void> _fetchSubscriptions() async {
+    // Ensure we have a selected student ID
+    if (_selectedStudentId != null) {
+      // Attempt to parse the selected student ID to an integer
+      final selectedStudentId = int.tryParse(_selectedStudentId!);
+
+      if (selectedStudentId != null) {
+        // Log the start of the fetch process
+        logDebug(
+            'Fetching subscription details for Student ID: $selectedStudentId');
+
+        try {
+          // Fetch subscription details from the repository
+          final records =
+              await _repository.fetchSubscriptionDetails(selectedStudentId);
+
+          // Log the fetched records
+          logDebug('Fetched subscription records: \n$records');
+
+          if (records.isNotEmpty) {
+            // Process and log the records if not empty
+            final processedRecords = records.map((record) {
+              return {
+                'start_date': record.startDate ?? 'N/A',
+                'end_date': record.endDate ?? 'N/A',
+                'fee': record.fee ?? 'N/A',
+                'created_at': record.createdAt ?? 'N/A',
+              };
+            }).toList();
+
+            // Update state and log the processed records
+            setState(() {
+              _studentsubscription = processedRecords;
+              _filteredSubscriptions = _studentsubscription;
+            });
+            logDebug('Processed subscription records: $_studentsubscription');
+          } else {
+            // Log when no records are found
+            logDebug(
+                'No subscription records found for Student ID: $selectedStudentId');
+            setState(() {
+              _studentsubscription = [];
+              _filteredSubscriptions = [];
+            });
+          }
+        } catch (e) {
+          // Log any exceptions encountered during the fetch process
+          logDebug('Error fetching subscription details: $e');
+          setState(() {
+            _studentsubscription = [];
+            _filteredSubscriptions = [];
+          });
+        }
+      } else {
+        // Log when the selected student ID is invalid
+        logDebug(
+            'Selected Student ID ($selectedStudentId) is not a valid integer.');
+      }
+    } else {
+      // Log when no student ID is selected
+      logDebug('Selected Student ID is null.');
+    }
   }
 
   @override
@@ -208,20 +202,29 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
                 ),
               ),
               Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: _filteredStudentNames.map((studentName) {
-                    return ListTile(
-                      title: Text(studentName),
-                      onTap: () {
-                        setState(() {
-                          _selectedStudent = studentName;
-                        });
-                        Navigator.pop(context); // Close the bottom sheet
-                      },
-                    );
-                  }).toList(),
-                ),
+                child: _filteredStudentNames.isNotEmpty
+                    ? ListView(
+                        padding: EdgeInsets.zero,
+                        children: _filteredStudentNames.map((studentName) {
+                          return ListTile(
+                            title: Text(studentName),
+                            onTap: () {
+                              setState(() {
+                                _selectedStudent = studentName;
+                                _selectedStudentId = _studentMap[studentName];
+                                print(
+                                    'Selected Student: $_selectedStudent, ID: $_selectedStudentId');
+                              });
+
+                              // Fetch subscriptions based on selected student
+                              _fetchSubscriptions();
+
+                              Navigator.pop(context); // Close the bottom sheet
+                            },
+                          );
+                        }).toList(),
+                      )
+                    : Center(child: Text('No students found')),
               ),
             ],
           ),
@@ -242,102 +245,150 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
             borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
           ),
           child: Column(
-           crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 24.h,),
+              SizedBox(height: 24.h),
               Padding(
-                padding:  EdgeInsets.symmetric(
-                  horizontal: 16.w,
-                ),
-                child: Text("Select Subscription",
-                style: LexendtextFont500.copyWith(
-                  color: AppColor.textcolor_blue,
-                  fontSize: 14.sp,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: Text(
+                  "Select Subscription",
+                  style: LexendtextFont500.copyWith(
+                    color: AppColor.textcolor_blue,
+                    fontSize: 14.sp,
+                  ),
                 ),
               ),
-              SizedBox(height: 10.h,),
-              // Padding(
-              //   padding: EdgeInsets.all(16.0),
-              //   child: TextField(
-              //     controller: _searchSubscriptionController,
-              //     decoration: InputDecoration(
-              //       prefixIcon: Icon(Icons.search),
-              //       hintText: 'Search subscription...',
-              //       border: OutlineInputBorder(
-              //         borderRadius: BorderRadius.circular(8.0),
-              //       ),
-              //     ),
-              //   ),
-              // ),
+              SizedBox(height: 10.h),
               Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: _filteredSubscriptions.map((subscription) {
-                    return ListTile(
-                      title: Container(
-                        padding: EdgeInsets.all(16.w),
-                        decoration: BoxDecoration(
-                          color: AppColor.bglightgray,
-                          // color: Color(0xffF5F5F5F5).withOpacity(0.80),
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        width: double.infinity,
-                        height: 70.h,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                        subscription['subscriptionPeriod'] ?? '',
-                                 // '22-12-2024 To 22-01-2025',
-                                  style: LexendtextFont500.copyWith(
-                                    color: AppColor.textcolorBlack,
-                                    fontSize: 14.sp,
+                child: _filteredSubscriptions.isNotEmpty
+                    ? ListView(
+                        padding: EdgeInsets.zero,
+                        children: _filteredSubscriptions.map((subscription) {
+                          return ListTile(
+                            title: Container(
+                              padding: EdgeInsets.all(16.w),
+                              decoration: BoxDecoration(
+                                color: AppColor.bglightgray,
+                                borderRadius: BorderRadius.circular(12.0),
+                              ),
+                              width: double.infinity,
+                              height: 70.h,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            subscription[
+                                                    'start_date'] ??
+                                                '',
+                                            // '22-12-2024 To 22-01-2025',
+                                            style: LexendtextFont500.copyWith(
+                                              color: AppColor.textcolorBlack,
+                                              fontSize: 14.sp,
+                                            ),
+                                          ),
+                                          Text(
+                                            'TO',
+                                            // '22-12-2024 To 22-01-2025',
+                                            style: LexendtextFont500.copyWith(
+                                              color: AppColor.textcolorBlack,
+                                              fontSize: 14.sp,
+                                            ),
+                                          ),
+                                          Text(
+                                            subscription[
+                                                    'end_date'] ??
+                                                '',
+                                            // '22-12-2024 To 22-01-2025',
+                                            style: LexendtextFont500.copyWith(
+                                              color: AppColor.textcolorBlack,
+                                              fontSize: 14.sp,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Text(
+                                       // subscription['created_at'] ?? '',
+                                        'Upgraded At ${subscription['created_at']}',
+                                        //"Upgraded At At 28-Jul-2023",
+                                        // "Subscription End : $endDate",
+                                        style: mulishRegularFont300.copyWith(
+                                          color: AppColor.textcolor_gray,
+                                          fontSize: 10.sp,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                Text(
-                                  subscription['upgradedAt'] ?? '',
-
-                                  //"Upgraded At At 28-Jul-2023",
-                                  // "Subscription End : $endDate",
-                                  style: mulishRegularFont300.copyWith(
-                                    color: AppColor.textcolor_gray,
-                                    fontSize: 10.sp,
+                                  Text(
+                                    '₹${subscription['fee']}',
+                                    // "₹1200",
+                                    style: LexendtextFont500.copyWith(
+                                      color: AppColor.textcolorBlack,
+                                      fontSize: 14.sp,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            Text(
-                                subscription['amount'] ?? '',
-                             // "₹1200",
-                              style: LexendtextFont500.copyWith(
-                                color: AppColor.textcolorBlack,
-                                fontSize: 14.sp,
+                                ],
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-
-                      onTap: () {
-                        setState(() {
-                          _selectedSubscription = subscription['subscriptionPeriod'];
-                        });
-                        Navigator.pop(context); // Close the bottom sheet
-                      },
-                    );
-                  }).toList(),
-                ),
+                            onTap: () {
+                              setState(() {
+                                _selectedSubscription =
+                                    subscription['subscriptionPeriod'];
+                              });
+                              Navigator.pop(context); // Close the bottom sheet
+                            },
+                          );
+                        }).toList(),
+                      )
+                    : Center(child: Text('No subscriptions found')),
               ),
             ],
           ),
         );
       },
     );
+  }
+
+  Future<void> _selectDate(TextEditingController controller) async {
+    final DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            primaryColor: Colors.blue,
+            hintColor: AppColor.btncolor,
+            buttonTheme: ButtonThemeData(
+              textTheme: ButtonTextTheme.primary,
+            ),
+            dialogBackgroundColor: Colors.white,
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColor.btncolor,
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (selectedDate != null) {
+      setState(() {
+        final DateFormat formatter = DateFormat('dd-MM-yyyy');
+        final String formattedDate = formatter.format(selectedDate);
+        controller.text = formattedDate;
+      });
+    }
   }
 
   @override
@@ -370,7 +421,6 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
             actions: [
               InkWell(
                 onTap: () {
-                 // Navigator.pushNamed(context, AppRoutes.home);
                   Navigator.pop(context);
                 },
                 child: Row(
@@ -415,7 +465,6 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
               onTap: _openBottomSheetSubscription,
             ),
             SizedBox(height: 20.h),
-
             Row(
               children: [
                 Expanded(
@@ -473,7 +522,6 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
               },
             ),
             SizedBox(height: 20.h),
-
             Container(
               height: 56.h,
               decoration: BoxDecoration(
@@ -488,8 +536,8 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
                     borderRadius: BorderRadius.circular(7),
                   ),
                 ),
-                onPressed: (){
-                  Navigator.pushNamed(context, AppRoutes.home);
+                onPressed: () {
+                 // Navigator.pushNamed(context, AppRoutes.home);
                 },
                 child: Center(
                   child: Text(

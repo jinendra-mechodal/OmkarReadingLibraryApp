@@ -1,27 +1,21 @@
-// lib/repositories/student_record_repository.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:library_app/res/app_url/app_url.dart';
 
 import '../../../../utils/logger.dart';
-import 'student_record_model.dart';
+import 'PrintStudentRecordsDetails_Modal.dart';
+import 'Printstudent_record_model.dart';
 
-class StudentRecordRepository {
+class PrintStudentRecordRepository {
 
-  // Use AppUrl.recordApi instead of a hardcoded URL
-  final String apiUrl = AppUrl.recordApi;
-
-  Future<List<StudentRecord>> fetchStudentRecord(int userId) async {
+  Future<List<PrintStudentRecord>> fetchStudentRecord(int userId) async {
     final Map<String, String> requestBody = {
       'user_id': userId.toString(),
     };
 
-    // Log and print the request URL and body
-    final Uri requestUrl = Uri.parse(apiUrl);
+    final Uri requestUrl = Uri.parse(AppUrl.recordApi);
     logDebug('Request URL for fetchStudentRecord: $requestUrl');
-
     logDebug('Request Body for fetchStudentRecord: ${jsonEncode(requestBody)}');
-
 
     try {
       final response = await http.post(
@@ -29,18 +23,14 @@ class StudentRecordRepository {
         body: requestBody,
       );
 
-      // Log and print the status code and response body
       logDebug('Response Status Code for fetchStudentRecord: ${response.statusCode}');
-      print('Response Status Code for fetchStudentRecord: ${response.statusCode}');
       logDebug('Response Body for fetchStudentRecord: ${response.body}');
-      print('Response Body for fetchStudentRecord: ${response.body}');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
         if (responseData['status'] == 'success') {
           List<dynamic> data = responseData['data'];
-          logDebug('Data fetched successfully for fetchStudentRecord');
-          return data.map((json) => StudentRecord.fromJson(json)).toList();
+          return data.map((json) => PrintStudentRecord.fromJson(json)).toList();
         } else {
           logDebug('Error in fetchStudentRecord: ${responseData['message']}');
           return [];
@@ -55,18 +45,14 @@ class StudentRecordRepository {
     }
   }
 
-  Future<List<StudentRecord>> fetchStudentRecords(int userId, String endDate) async {
+  Future<List<PrintStudentRecordsDetails>> fetchSubscriptionDetails(int studentId) async {
     final Map<String, String> requestBody = {
-      'user_id': userId.toString(),
-      'end_date': endDate,
+      'student_id': studentId.toString(),
     };
 
-    // Log and print the request URL and body
-    final Uri requestUrl = Uri.parse(apiUrl);
-    logDebug('Request URL for fetchStudentRecords: $requestUrl');
-
-    logDebug('Request Body for fetchStudentRecords: ${jsonEncode(requestBody)}');
-
+    final Uri requestUrl = Uri.parse(AppUrl.subscription_detailsApi);
+    logDebug('Request URL for fetchSubscriptionDetails: $requestUrl');
+    logDebug('Request Body for fetchSubscriptionDetails: ${jsonEncode(requestBody)}');
 
     try {
       final response = await http.post(
@@ -74,29 +60,33 @@ class StudentRecordRepository {
         body: requestBody,
       );
 
-      // Log and print the status code and response body
-      logDebug('Response Status Code for fetchStudentRecords: ${response.statusCode}');
-
-      logDebug('Response Body for fetchStudentRecords: ${response.body}');
-
+      logDebug('Response Status Code for fetchSubscriptionDetails: ${response.statusCode}');
+      logDebug('Response Body for fetchSubscriptionDetails: ${response.body}');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
         if (responseData['status'] == 'success') {
           List<dynamic> data = responseData['data'];
-          logDebug('Data fetched successfully for fetchStudentRecords');
-          return data.map((json) => StudentRecord.fromJson(json)).toList();
+          return data.map((json) {
+            try {
+              return PrintStudentRecordsDetails.fromJson(json);
+            } catch (e) {
+              logDebug('Error parsing record: $e');
+              return PrintStudentRecordsDetails(); // Return a default instance on error
+            }
+          }).toList();
         } else {
-          logDebug('Error in fetchStudentRecords: ${responseData['message']}');
+          logDebug('Error in fetchSubscriptionDetails: ${responseData['message']}');
           return [];
         }
       } else {
-        logDebug('Error: Failed to load data in fetchStudentRecords');
+        logDebug('Error: Failed to load data in fetchSubscriptionDetails');
         return [];
       }
     } catch (error) {
-      logDebug('Exception in fetchStudentRecords: $error');
+      logDebug('Exception in fetchSubscriptionDetails: $error');
       return [];
     }
   }
+
 }

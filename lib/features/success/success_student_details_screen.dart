@@ -37,7 +37,10 @@ class SuccessStudentDetailsScreen extends StatelessWidget {
               InkWell(
                 onTap: (){
                   // Redirect to Home page
-                  Navigator.pushNamed(context, AppRoutes.availableStudents);
+                 // Navigator.pushNamed(context, AppRoutes.availableStudents);
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+
                 },
                 child: Container(
                   width: double.infinity,
@@ -71,7 +74,23 @@ class SuccessStudentDetailsScreen extends StatelessWidget {
               InkWell(
                 onTap: (){
                   // Redirect to Home page
-                  Navigator.pushNamed(context, AppRoutes.home);
+                 // Navigator.pushNamed(context, AppRoutes.home);
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+
+
+                  // Navigator.pushNamed(
+                  //   context,
+                  //   AppRoutes.studentsdetails,
+                  //   arguments: record.id, // Pass the student ID as an argument
+                  // );
+                  // Future.microtask(() {
+                  //   Navigator.pop(context); // Close the current dialog or page
+                  //   Navigator.pop(context); // Navigate back to the previous page
+                  // });
+
                 },
                 child: Container(
                   width: double.infinity,

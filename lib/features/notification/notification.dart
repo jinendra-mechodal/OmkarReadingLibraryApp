@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../res/colors/app_color.dart';
 import '../../res/fonts/text_style.dart';
 import '../../res/routes/app_routes.dart';
-import '../../utils/constants/logger.dart';
+import '../../utils/logger.dart';
 import 'ViewModel/notification_viewmodel.dart';
 
 class NotificationPage extends StatefulWidget {
@@ -22,7 +22,7 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   void initState() {
     super.initState();
-    final viewModel = Provider.of<NotificationViewModel>(context, listen: false);
+   // final viewModel = Provider.of<NotificationViewModel>(context, listen: false);
     logDebug('Fetching notifications'); // Debug log
    // viewModel.loadNotifications(2 ); // Replace with actual user ID
    _fetchNotifications();

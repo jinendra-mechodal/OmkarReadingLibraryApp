@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../utils/constants/logger.dart';
+import '../../../utils/logger.dart';
 import '../data/login_repository.dart';
 
 class LoginViewModel extends ChangeNotifier {
