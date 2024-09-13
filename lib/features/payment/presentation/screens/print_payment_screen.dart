@@ -340,7 +340,7 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
                             onTap: () {
                               setState(() {
                                 _selectedSubscription =
-                                    subscription['subscriptionPeriod'];
+                                '${subscription['start_date']} TO ${subscription['end_date']}';
                               });
                               Navigator.pop(context); // Close the bottom sheet
                             },
