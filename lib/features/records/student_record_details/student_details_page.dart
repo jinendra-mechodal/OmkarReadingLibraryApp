@@ -58,6 +58,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
       backgroundColor: AppColor.whiteColor,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight),
