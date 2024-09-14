@@ -28,6 +28,8 @@ class CustomSubscriptionDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final _formKey = GlobalKey<FormState>();
+
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setState) {
         final viewModel = Provider.of<SubscriptionViewModel>(context);
@@ -39,125 +41,131 @@ class CustomSubscriptionDialog extends StatelessWidget {
           ),
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'New Subscription',
-                  style: montserratfont600.copyWith(
-                    fontSize: 15.sp,
-                    color: AppColor.textcolor_blue,
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'New Subscription',
+                    style: montserratfont600.copyWith(
+                      fontSize: 15.sp,
+                      color: AppColor.textcolor_blue,
+                    ),
                   ),
-                ),
-                SizedBox(height: 25.h),
-                // Row for date fields
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => _selectDate(context, startDateController),
-                        child: AbsorbPointer(
-                          child: RegistrationTextFormField(
-                            controller: startDateController,
-                            hintText: 'Start Date',
-                            focusNode: startDateFocusNode,
-                            keyboardType: TextInputType.datetime,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter the start date';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10.w),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => _selectDate(context, endDateController),
-                        child: AbsorbPointer(
-                          child: RegistrationTextFormField(
-                            controller: endDateController,
-                            hintText: 'End Date',
-                            focusNode: endDateFocusNode,
-                            keyboardType: TextInputType.datetime,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter the end date';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20.h),
-                // Numeric input field
-                RegistrationTextFormField(
-                  controller: feesController,
-                  hintText: 'Fees',
-                  focusNode: feesFocusNode,
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the fees';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 20.h),
-                // Submit button
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        // Get input data
-                        final startDate = startDateController.text;
-                        final endDate = endDateController.text;
-                        final fees = feesController.text;
-
-                        // Call the ViewModel to submit the subscription
-                        await viewModel.submitSubscription(
-                          studentId: studentId,
-                          startDate: startDate,
-                          endDate: endDate,
-                          fee: fees,
-                        );
-
-                        if (viewModel.response != null && viewModel.response!.status == 'success') {
-                          Navigator.pushNamed(context, AppRoutes.studentDetailsSuccess);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(viewModel.error ?? 'Failed to submit subscription. Please try again.'),
-                              duration: Duration(seconds: 2),
+                  SizedBox(height: 25.h),
+                  // Row for date fields
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => _selectDate(context, startDateController),
+                          child: AbsorbPointer(
+                            child: RegistrationTextFormField(
+                              controller: startDateController,
+                              hintText: 'Start Date',
+                              focusNode: startDateFocusNode,
+                              keyboardType: TextInputType.datetime,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter the start date';
+                                }
+                                return null;
+                              },
                             ),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColor.btncolor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
+                          ),
                         ),
-                        padding: EdgeInsets.symmetric(vertical: 14.h),
                       ),
-                      child: Text(
-                        'Submit',
-                        style: LexendtextFont700.copyWith(
-                          color: AppColor.whiteColor,
-                          fontSize: 16.sp,
+                      SizedBox(width: 10.w),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => _selectDate(context, endDateController),
+                          child: AbsorbPointer(
+                            child: RegistrationTextFormField(
+                              controller: endDateController,
+                              hintText: 'End Date',
+                              focusNode: endDateFocusNode,
+                              keyboardType: TextInputType.datetime,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter the end date';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20.h),
+                  // Numeric input field
+                  RegistrationTextFormField(
+                    controller: feesController,
+                    hintText: 'Fees',
+                    focusNode: feesFocusNode,
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter the fees';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 20.h),
+                  // Submit button
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          // Validate form fields
+                          if (_formKey.currentState!.validate()) {
+                            // Get input data
+                            final startDate = startDateController.text;
+                            final endDate = endDateController.text;
+                            final fees = feesController.text;
+
+                            // Call the ViewModel to submit the subscription
+                            await viewModel.submitSubscription(
+                              studentId: studentId,
+                              startDate: startDate,
+                              endDate: endDate,
+                              fee: fees,
+                            );
+
+                            if (viewModel.response != null && viewModel.response!.status == 'success') {
+                              Navigator.pushNamed(context, AppRoutes.studentDetailsSuccess);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(viewModel.error ?? 'Failed to submit subscription. Please try again.'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColor.btncolor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: 14.h),
+                        ),
+                        child: Text(
+                          'Submit',
+                          style: LexendtextFont700.copyWith(
+                            color: AppColor.whiteColor,
+                            fontSize: 16.sp,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );

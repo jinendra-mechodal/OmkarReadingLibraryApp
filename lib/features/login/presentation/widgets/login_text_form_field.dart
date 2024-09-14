@@ -36,7 +36,9 @@ class LoginTextFormField extends StatelessWidget {
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(7),
             borderSide: BorderSide(
-              color: focusNode.hasFocus ? AppColor.BorderColorblue : AppColor.BorderColorsilver,
+              color: focusNode.hasFocus
+                  ? AppColor.BorderColorblue
+                  : AppColor.BorderColorsilver,
             ),
           ),
           focusedBorder: OutlineInputBorder(
@@ -59,12 +61,12 @@ class LoginTextFormField extends StatelessWidget {
           ),
           suffixIcon: hintText.toLowerCase().contains("password")
               ? IconButton(
-            icon: Icon(
-              obscureText ? Icons.visibility : Icons.visibility_off,
-              color: AppColor.BorderColorsilver,
-            ),
-            onPressed: toggleObscureText,
-          )
+                  icon: Icon(
+                    obscureText ? Icons.visibility_off : Icons.visibility,
+                    color: AppColor.BorderColorsilver,
+                  ),
+                  onPressed: toggleObscureText,
+                )
               : null,
         ),
         validator: validator,

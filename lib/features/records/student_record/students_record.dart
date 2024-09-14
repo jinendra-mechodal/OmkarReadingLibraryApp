@@ -10,7 +10,7 @@ import '../../../utils/logger.dart';
 import 'view_modal_studentrecord/student_record_view_model.dart';
 
 class StudentsRecord extends StatefulWidget {
-  const StudentsRecord({super.key});
+  const StudentsRecord({Key? key}) : super(key: key);
 
   @override
   State<StudentsRecord> createState() => _StudentsRecordState();
@@ -18,19 +18,29 @@ class StudentsRecord extends StatefulWidget {
 
 class _StudentsRecordState extends State<StudentsRecord> {
   DateTime? _selectedDate;
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    // Fetch initial student records
     _fetchStudentRecord();
     _searchController.addListener(() {
       setState(() {
         _searchQuery = _searchController.text;
       });
     });
+  }
+
+  // In the StudentsRecord screen
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final result = ModalRoute.of(context)?.settings.arguments as bool?;
+    if (result == true) {
+      _fetchStudentRecord(); // Refresh data if necessary
+    }
   }
 
   @override
@@ -84,6 +94,27 @@ class _StudentsRecordState extends State<StudentsRecord> {
         initialDate: _selectedDate ?? DateTime.now(),
         firstDate: DateTime(2000),
         lastDate: DateTime(2050),
+        builder: (BuildContext context, Widget? child) {
+          return Theme(
+            data: ThemeData.light().copyWith(
+              colorScheme: ColorScheme.light(
+                primary: AppColor.btncolor,
+                onPrimary: AppColor.whiteColor,
+              ),
+              textButtonTheme: TextButtonThemeData(
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColor.whiteColor,
+                  backgroundColor: AppColor.btncolor,
+                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+              ),
+            ),
+            child: child!,
+          );
+        },
       );
 
       if (pickedDate != null && pickedDate != _selectedDate) {
@@ -112,7 +143,7 @@ class _StudentsRecordState extends State<StudentsRecord> {
       return record.name.toLowerCase().contains(_searchQuery.toLowerCase());
     }).toList();
 
-    print('Student Records Count: ${viewModel.studentRecords.length}'); // Debugging line
+    logDebug('Student Records Count: ${viewModel.studentRecords.length}');
 
     return Scaffold(
       backgroundColor: AppColor.whiteColor,
@@ -133,7 +164,7 @@ class _StudentsRecordState extends State<StudentsRecord> {
           child: AppBar(
             backgroundColor: AppColor.whiteColor,
             title: Text(
-              'Student Registration',
+              'Student Record',
               style: LexendtextFont500.copyWith(
                 fontSize: 16.sp,
                 color: AppColor.textcolorBlack,
@@ -170,22 +201,14 @@ class _StudentsRecordState extends State<StudentsRecord> {
         ),
       ),
       body: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: 16.w,
-          vertical: 16.h,
-        ),
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
         child: Column(
           children: [
             Row(
               children: [
-                Container(
-                  width: 260.w,
-                  height: 45.h,
+                Expanded(
                   child: TextFormField(
                     controller: _searchController,
-                    onChanged: (value){
-
-                    },
                     decoration: InputDecoration(
                       prefixIcon: Container(
                         padding: EdgeInsets.all(8.0),
@@ -241,7 +264,7 @@ class _StudentsRecordState extends State<StudentsRecord> {
             SizedBox(height: 10.h),
             Expanded(
               child: viewModel.isLoading
-                  ? Center(child: CircularProgressIndicator())
+                  ? Center(child: CircularProgressIndicator(color: AppColor.btncolor))
                   : viewModel.errorMessage != null
                   ? Center(child: Text(viewModel.errorMessage!))
                   : viewModel.studentRecords.isEmpty
@@ -252,18 +275,16 @@ class _StudentsRecordState extends State<StudentsRecord> {
                   final record = filteredRecords[index];
                   return InkWell(
                     onTap: () {
-                     // logDebug('Navigating to student details for ${record.id}');
-                     // Navigator.pushNamed(context, AppRoutes.studentsdetails);
                       logDebug('Navigating to student details for ${record.studentId}');
                       Navigator.pushNamed(
                         context,
                         AppRoutes.studentsdetails,
-                        arguments: record.studentId, // Pass the student ID as an argument
+                        arguments: record.studentId,
                       );
-                      },
+                    },
                     child: Container(
                       margin: EdgeInsets.all(5.r),
-                      padding: EdgeInsets.all(16.w),
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
                       decoration: BoxDecoration(
                         color: AppColor.bglightgray,
                         borderRadius: BorderRadius.circular(12.0),
@@ -293,7 +314,7 @@ class _StudentsRecordState extends State<StudentsRecord> {
                                       fontSize: 10.sp,
                                     ),
                                   ),
-                                  SizedBox(width: 2.w,),
+                                  SizedBox(width: 2.w),
                                   Text(
                                     "${record.endDate}",
                                     style: PoppinstextFont400.copyWith(
@@ -313,7 +334,7 @@ class _StudentsRecordState extends State<StudentsRecord> {
                 },
               ),
             ),
-            SizedBox(height: 20.h),
+            SizedBox(height: 10.h),
           ],
         ),
       ),

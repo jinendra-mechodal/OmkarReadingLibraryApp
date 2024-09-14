@@ -391,26 +391,54 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
 
   Widget _buildActionItem(BuildContext context, String title, String route) {
     print('Building Action Item: $title');
-    return GestureDetector(
+    return InkWell(
       onTap: () {
         print('Navigating to route: $route');
         Navigator.pushNamed(context, route);
       },
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: LexendtextFont600.copyWith(
-              fontSize: 14.sp,
-              color: AppColor.textcolorBlack,
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 1.h), // Adds vertical padding for a larger tap area
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: LexendtextFont600.copyWith(
+                fontSize: 14.sp,
+                color: AppColor.textcolorBlack,
+              ),
             ),
-          ),
-          Image.asset(
-            "assets/icons/right-icon.png",
-          ),
-        ],
+            Image.asset(
+              "assets/icons/right-icon.png",
+            ),
+          ],
+        ),
       ),
     );
   }
+
+// Widget _buildActionItem(BuildContext context, String title, String route) {
+  //   print('Building Action Item: $title');
+  //   return GestureDetector(
+  //     onTap: () {
+  //       print('Navigating to route: $route');
+  //       Navigator.pushNamed(context, route);
+  //     },
+  //     child: Row(
+  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //       children: [
+  //         Text(
+  //           title,
+  //           style: LexendtextFont600.copyWith(
+  //             fontSize: 14.sp,
+  //             color: AppColor.textcolorBlack,
+  //           ),
+  //         ),
+  //         Image.asset(
+  //           "assets/icons/right-icon.png",
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 }

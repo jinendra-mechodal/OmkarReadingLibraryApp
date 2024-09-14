@@ -64,9 +64,10 @@ class StudentRecordRepository {
     // Log and print the request URL and body
     final Uri requestUrl = Uri.parse(apiUrl);
     logDebug('Request URL for fetchStudentRecords: $requestUrl');
+    print('Request URL for fetchStudentRecords: $requestUrl'); // Added print statement
 
     logDebug('Request Body for fetchStudentRecords: ${jsonEncode(requestBody)}');
-
+    print('Request Body for fetchStudentRecords: ${jsonEncode(requestBody)}'); // Added print statement
 
     try {
       final response = await http.post(
@@ -76,27 +77,33 @@ class StudentRecordRepository {
 
       // Log and print the status code and response body
       logDebug('Response Status Code for fetchStudentRecords: ${response.statusCode}');
+      print('Response Status Code for fetchStudentRecords: ${response.statusCode}'); // Added print statement
 
       logDebug('Response Body for fetchStudentRecords: ${response.body}');
-
+      print('Response Body for fetchStudentRecords: ${response.body}'); // Added print statement
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
         if (responseData['status'] == 'success') {
           List<dynamic> data = responseData['data'];
           logDebug('Data fetched successfully for fetchStudentRecords');
+
           return data.map((json) => StudentRecord.fromJson(json)).toList();
         } else {
           logDebug('Error in fetchStudentRecords: ${responseData['message']}');
+
           return [];
         }
       } else {
         logDebug('Error: Failed to load data in fetchStudentRecords');
+
         return [];
       }
     } catch (error) {
       logDebug('Exception in fetchStudentRecords: $error');
+
       return [];
     }
   }
+
 }

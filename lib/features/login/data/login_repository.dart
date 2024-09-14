@@ -25,25 +25,23 @@ class AuthRepository {
 
       if (response.statusCode == 200) {
         if (responseJson['status'] == 'error') {
-          // Using Utils to display error message
-          Utils.snackBar('Login Error', responseJson['message']);
-          //throw FetchDataException(responseJson['message']);
-          throw AppExceptions(responseJson['message'], 'Login Error: ');
+          final errorMessage = responseJson['message'] ?? 'An error occurred';
+          throw AppExceptions(errorMessage, 'Login Error: ');
         }
 
-        return LoginModel.fromJson(responseJson);
+        if (responseJson['status'] == 'success') {
+          return LoginModel.fromJson(responseJson);
+        } else {
+          final errorMessage = responseJson['message'] ?? 'Unexpected status received';
+          throw AppExceptions(errorMessage, 'Unexpected Status: ');
+        }
       } else {
-        // Display error message
-        Utils.snackBar('Login Failed', 'Failed to login with status code ${response.statusCode}');
-        throw FetchDataException('Failed to login with status code ${response.statusCode}');
+        final errorMessage = 'Failed to login with status code ${response.statusCode}';
+        throw FetchDataException(errorMessage);
       }
     } catch (e) {
       logDebug('Login error: $e');
-      Utils.snackBar('Login Error', 'An unexpected error occurred: $e');
       throw FetchDataException('$e');
-    //  throw FetchDataException('An unexpected error occurred: $e');
     }
   }
-
-
 }

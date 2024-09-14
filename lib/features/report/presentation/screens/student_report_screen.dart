@@ -8,7 +8,6 @@ import '../../../../res/colors/app_color.dart';
 import '../../../../res/fonts/text_style.dart';
 import '../../../../res/routes/app_routes.dart';
 import '../../data/report_model.dart';
-import '../../data/report_repository.dart';
 import '../../domain/student_report_view_model.dart';
 
 class StudentReportScreen extends StatefulWidget {
@@ -23,59 +22,39 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
   String _startDate = 'Start Date';
   String _endDate = 'End Date';
 
-  // Variable to store fetched reports
+  // Variables to store fetched and filtered reports
   List<StudentReport> _reports = [];
+  List<StudentReport> _filteredReports = [];
 
-  // Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
-  //   final DateTime? selectedDate = await showDatePicker(
-  //     context: context,
-  //     initialDate: DateTime.now(),
-  //     firstDate: DateTime(1900),
-  //     lastDate: DateTime(2100),
-  //     builder: (BuildContext context, Widget? child) {
-  //       return Theme(
-  //         data: ThemeData.light().copyWith(
-  //           colorScheme: ColorScheme.light(
-  //             primary: AppColor.btncolor,
-  //             onPrimary: AppColor.whiteColor,
-  //           ),
-  //           textButtonTheme: TextButtonThemeData(
-  //             style: TextButton.styleFrom(
-  //               foregroundColor: AppColor.whiteColor,
-  //               backgroundColor: AppColor.btncolor,
-  //               padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-  //               shape: RoundedRectangleBorder(
-  //                 borderRadius: BorderRadius.circular(8.0),
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //         child: child!,
-  //       );
-  //     },
-  //   );
-  //
-  //   if (selectedDate != null) {
-  //     final DateFormat formatter = DateFormat('yyyy-MM-dd');
-  //     final String formattedDate = formatter.format(selectedDate);
-  //
-  //     controller.text = formattedDate;
-  //
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('Selected date: $formattedDate'),
-  //         duration: Duration(seconds: 2),
-  //       ),
-  //     );
-  //   } else {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('No date selected'),
-  //         duration: Duration(seconds: 2),
-  //       ),
-  //     );
-  //   }
-  // }
+  // Controller for the search field
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_filterReports);
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_filterReports);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // Function to filter reports based on search query
+  void _filterReports() {
+    final query = _searchController.text.toLowerCase();
+    print('Search Query: $query'); // Print query to console for debugging
+    final filtered = _reports.where((report) {
+      return report.studentName.toLowerCase().contains(query);
+    }).toList();
+    if (mounted) {
+      setState(() {
+        _filteredReports = filtered;
+      });
+    }
+  }
 
   // Function to show date picker and update the selected date
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
@@ -84,96 +63,73 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2050),
-          builder: (BuildContext context, Widget? child) {
-            return Theme(
-              data: ThemeData.light().copyWith(
-                colorScheme: ColorScheme.light(
-                  primary: AppColor.btncolor,
-                  onPrimary: AppColor.whiteColor,
-                ),
-                textButtonTheme: TextButtonThemeData(
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColor.whiteColor,
-                    backgroundColor: AppColor.btncolor,
-                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColor.btncolor,
+              onPrimary: AppColor.whiteColor,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColor.whiteColor,
+                backgroundColor: AppColor.btncolor,
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              child: child!,
-            );
-          },
-
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (selectedDate != null) {
       setState(() {
-        final formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate); // Corrected format
+        final formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
         if (isStartDate) {
           _startDate = formattedDate;
         } else {
           _endDate = formattedDate;
         }
+        // Trigger report fetching if end date is selected
+        if (!isStartDate) {
+          _fetchReports();
+        }
       });
-
-      // Log the selected dates
-      print('Start Date: $_startDate');
-      print('End Date: $_endDate');
-
-      // If the end date is selected, make the API call
-      if (!isStartDate) {
-        await _fetchReports();
-      }
     }
   }
 
   Future<void> _fetchReports() async {
     try {
-      // Log the start of the fetch operation
-      print('Starting report fetch...');
-
-      // Retrieve user ID from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getString('user_id') ?? ''; // Default to empty string if user_id is not found
-      print('User ID: $userId');
+      final userId = prefs.getString('user_id') ?? '';
 
-      // Format dates using the updated _formatDate method
       final startDateFormatted = _formatDate(_startDate);
       final endDateFormatted = _formatDate(_endDate);
 
-      // Log formatted dates
-      print('Formatted Start Date: $startDateFormatted');
-      print('Formatted End Date: $endDateFormatted');
-
-      // Check if dates are valid
       if (startDateFormatted.isEmpty || endDateFormatted.isEmpty) {
-        print('Error: One or both dates are invalid.');
         return;
       }
 
-      // Log that the API call is being made
-      print('Fetching reports from repository...');
-
-      // Use Provider to access StudentReportViewModel
       final viewModel = Provider.of<StudentReportViewModel>(context, listen: false);
 
-      // Ensure the correct named parameters are used
       await viewModel.fetchReports(
         userId: userId,
         startDate: startDateFormatted,
         endDate: endDateFormatted,
       );
 
-      // Check if reports are empty
-      if (viewModel.reports.isEmpty) {
-        print('No reports found for the given date range.');
-      } else {
-        print('Reports fetched successfully: ${viewModel.reports}');
+      // Use setState here, but only if needed
+      if (mounted) {
+        setState(() {
+          _reports = viewModel.reports;
+          _filterReports(); // Update the filtered reports based on the new data
+        });
       }
     } catch (e) {
-      // Log the error
       print('API Request Error: $e');
     }
   }
@@ -182,17 +138,18 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
     try {
       final inputFormat = DateFormat('dd-MM-yyyy');
       final outputFormat = DateFormat('yyyy-MM-dd');
-      final parsedDate = inputFormat.parse(date); // Parse the date in dd-MM-yyyy format
-      return outputFormat.format(parsedDate); // Format it to yyyy-MM-dd
+      final parsedDate = inputFormat.parse(date);
+      return outputFormat.format(parsedDate);
     } catch (e) {
       print('Date formatting error: $e');
       return '';
     }
   }
 
-  // Method to handle tap event and print student_id
   void _handleTap(String studentId) {
     print('Student ID: $studentId');
+    // Navigate to the student details page
+    // Navigator.pushNamed(context, AppRoutes.studentsdetails);
   }
 
   @override
@@ -201,10 +158,9 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
       backgroundColor: AppColor.whiteColor,
       appBar: AppBar(
         backgroundColor: AppColor.btncolor,
-        automaticallyImplyLeading: false, // Hides the back button
+        automaticallyImplyLeading: false,
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(120.h),
-          // Increased height for more space
           child: Container(
             color: AppColor.btncolor,
             child: Padding(
@@ -220,6 +176,7 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
                       color: AppColor.whiteColor,
                     ),
                     child: TextFormField(
+                      controller: _searchController,
                       decoration: InputDecoration(
                         prefixIcon: Container(
                           padding: EdgeInsets.all(8.0),
@@ -252,7 +209,7 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 15.h), // Space between input fields
+                  SizedBox(height: 15.h),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -260,13 +217,13 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
                         child: GestureDetector(
                           onTap: () => _selectDate(context, true),
                           child: Container(
-                            height: 50.h, // Ensure consistent height
+                            height: 50.h,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10.r),
                               color: AppColor.whiteColor,
                             ),
                             alignment: Alignment.centerLeft,
-                            padding: EdgeInsets.symmetric(horizontal: 12.w), // Ensure padding is consistent
+                            padding: EdgeInsets.symmetric(horizontal: 12.w),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
@@ -276,7 +233,7 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
                                   height: 18.h,
                                   width: 19.w,
                                 ),
-                                SizedBox(width: 8.w), // Spacing between icon and text
+                                SizedBox(width: 8.w),
                                 Expanded(
                                   child: Text(
                                     _startDate,
@@ -284,7 +241,7 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
                                       color: AppColor.textcolorSilver,
                                       fontSize: 13.sp,
                                     ),
-                                    overflow: TextOverflow.ellipsis, // Handle text overflow
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 Icon(
@@ -296,7 +253,7 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(width: 6.w), // Spacing between fields
+                      SizedBox(width: 6.w),
                       Text(
                         'TO',
                         style: LexendtextFont500.copyWith(
@@ -304,18 +261,18 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
                           fontSize: 12.sp,
                         ),
                       ),
-                      SizedBox(width: 6.w), // Spacing between fields
+                      SizedBox(width: 6.w),
                       Expanded(
                         child: GestureDetector(
                           onTap: () => _selectDate(context, false),
                           child: Container(
-                            height: 50.h, // Ensure consistent height
+                            height: 50.h,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10.r),
                               color: AppColor.whiteColor,
                             ),
                             alignment: Alignment.centerLeft,
-                            padding: EdgeInsets.symmetric(horizontal: 12.w), // Ensure padding is consistent
+                            padding: EdgeInsets.symmetric(horizontal: 12.w),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
@@ -325,7 +282,7 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
                                   height: 18.h,
                                   width: 19.w,
                                 ),
-                                SizedBox(width: 8.w), // Space between icon and text
+                                SizedBox(width: 8.w),
                                 Expanded(
                                   child: Text(
                                     _endDate,
@@ -333,7 +290,7 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
                                       color: AppColor.textcolorSilver,
                                       fontSize: 13.sp,
                                     ),
-                                    overflow: TextOverflow.ellipsis, // Handle text overflow
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 Icon(
@@ -347,7 +304,6 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
                       ),
                     ],
                   ),
-
                   SizedBox(height: 20.h),
                 ],
               ),
@@ -367,15 +323,21 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
               return Center(child: Text('Error: ${viewModel.error}'));
             }
 
+            // Update reports and filteredReports only if viewModel.reports has changed
+            if (_reports != viewModel.reports) {
+              _reports = viewModel.reports;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _filterReports();
+              });
+            }
+
             return ListView.builder(
-              itemCount: viewModel.reports.length,
+              itemCount: _filteredReports.length,
               itemBuilder: (context, index) {
-                final report = viewModel.reports[index];
+                final report = _filteredReports[index];
                 return InkWell(
                   onTap: () {
-                    // Handle tap
                     _handleTap(report.studentId);
-                  //  Navigator.pushNamed(context, AppRoutes.studentsdetails);
                   },
                   child: Container(
                     margin: EdgeInsets.all(5.r),

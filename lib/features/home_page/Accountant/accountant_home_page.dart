@@ -209,74 +209,84 @@ class _AccountantHomePageState extends State<AccountantHomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      GestureDetector(
+                      InkWell(
                         onTap: () {
                           print('Navigating to Print Payment Slip page...');
                           Navigator.pushNamed(context, AppRoutes.printPaymentScreen);
                         },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Print Payment Slip",
-                              style: LexendtextFont600.copyWith(
-                                fontSize: 14.sp,
-                                color: AppColor.textcolorBlack,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 1.h), // Adds vertical padding for better click area
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Print Payment Slip",
+                                style: LexendtextFont600.copyWith(
+                                  fontSize: 14.sp,
+                                  color: AppColor.textcolorBlack,
+                                ),
                               ),
-                            ),
-                            Image.asset(
-                              "assets/icons/right-icon.png",
-                            ),
-                          ],
+                              Image.asset(
+                                "assets/icons/right-icon.png",
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       SizedBox(height: 26.h),
-                      GestureDetector(
+                      InkWell(
                         onTap: () {
                           print('Navigating to Students Report page...');
                           Navigator.pushNamed(context, AppRoutes.studentReportScreen);
                         },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Students Report",
-                              style: LexendtextFont600.copyWith(
-                                fontSize: 14.sp,
-                                color: AppColor.textcolorBlack,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 1.h), // Adds vertical padding for better click area
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Students Report",
+                                style: LexendtextFont600.copyWith(
+                                  fontSize: 14.sp,
+                                  color: AppColor.textcolorBlack,
+                                ),
                               ),
-                            ),
-                            Image.asset(
-                              "assets/icons/right-icon.png",
-                            ),
-                          ],
+                              Image.asset(
+                                "assets/icons/right-icon.png",
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       SizedBox(height: 26.h),
-                      GestureDetector(
+                      InkWell(
                         onTap: () {
                           print('Navigating to Notification page...');
                           Navigator.pushNamed(context, AppRoutes.notification);
                         },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Notification",
-                              style: LexendtextFont600.copyWith(
-                                fontSize: 14.sp,
-                                color: AppColor.textcolorBlack,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 1.h), // Adds vertical padding for better click area
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Notification",
+                                style: LexendtextFont600.copyWith(
+                                  fontSize: 14.sp,
+                                  color: AppColor.textcolorBlack,
+                                ),
                               ),
-                            ),
-                            Image.asset(
-                              "assets/icons/right-icon.png",
-                            ),
-                          ],
+                              Image.asset(
+                                "assets/icons/right-icon.png",
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
+
                 SizedBox(height: 20.h),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

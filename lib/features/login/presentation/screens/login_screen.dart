@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../../../data/app_excaption.dart';
 import '../../../../res/colors/app_color.dart';
 import '../../../../res/fonts/text_style.dart';
-import '../../../../res/routes/app_routes.dart';
 import '../../../../utils/logger.dart';
 import '../../../../utils/utils.dart';
 import '../../data/login_repository.dart';
@@ -42,31 +41,6 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  // void _login() {
-  //   if (_formKey.currentState?.validate() ?? false) {
-  //     final email = _emailController.text;
-  //     final password = _passwordController.text;
-  //
-  //     logDebug('Login button pressed');
-  //     logDebug('Email: $email');
-  //     logDebug('Password: $password');
-  //
-  //     final loginViewModel = Provider.of<LoginViewModel>(context, listen: false);
-  //     loginViewModel.login(email, password).then((_) {
-  //       if (loginViewModel.errorMessage == null) {
-  //         logDebug('Login successful. Navigating to Home page');
-  //         Navigator.pushNamed(context, AppRoutes.home);
-  //       } else {
-  //         logDebug('Login failed: ${loginViewModel.errorMessage}');
-  //       }
-  //     }).catchError((error) {
-  //       logDebug('Login error: $error');
-  //     });
-  //   } else {
-  //     logDebug('Form validation failed');
-  //   }
-  // }
-
   void _login() {
     if (_formKey.currentState?.validate() ?? false) {
       final email = _emailController.text;
@@ -90,15 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }).catchError((error) {
         logDebug('Login error: $error');
-
-        // Use Utils to display the error message to the user
-        if (error is AppExceptions) {
-         // Utils.snackBar('Login Error', error.toString());
-          Utils.snackBar('',error.toString());
-        } else {
-          Utils.snackBar('Unexpected Error', 'An unexpected error occurred: $error');
-        }
-
+        // Handle error here if needed, but the error should be shown in the SnackBar from the ViewModel.
       });
     } else {
       logDebug('Form validation failed');
@@ -114,87 +80,96 @@ class _LoginScreenState extends State<LoginScreen> {
           return SafeArea(
             child: Scaffold(
               backgroundColor: AppColor.whiteColor,
-              body: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 50.h),
-                      Image.asset("assets/images/login-img.png"),
-                      SizedBox(height: 20.h),
-                      Text(
-                        "Welcome Back!",
-                        style: LexendtextFont500.copyWith(
-                          fontSize: 20.sp,
-                        ),
-                      ),
-                      SizedBox(height: 5.h),
-                      Text(
-                        "Sign in to your account using your ID and Password",
-                        style: LexendtextFont300.copyWith(
-                          fontSize: 13.sp,
-                          color: AppColor.textcolorSilver,
-                        ),
-                      ),
-                      SizedBox(height: 20.h),
-                      Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            LoginTextFormField(
-                              controller: _emailController,
-                              hintText: 'User ID',
-                              focusNode: _emailFocusNode,
-                              onFieldSubmittedCallback: () {
-                                // Move focus to the next field (password)
-                                Utils.fieldFocusChange(context, _emailFocusNode, _passwordFocusNode);
-                              },
-                              validator: (value) {
-                                logDebug('Validating email: $value');
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your email';
-                                }
-                                if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
-                                  return 'Please enter a valid email address';
-                                }
-                                return null;
-                              },
+              body: Stack(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 50.h),
+                          Image.asset("assets/images/login-img.png"),
+                          SizedBox(height: 20.h),
+                          Text(
+                            "Welcome Back!",
+                            style: LexendtextFont500.copyWith(
+                              fontSize: 20.sp,
                             ),
-                            LoginTextFormField(
-                              controller: _passwordController,
-                              hintText: 'Password',
-                              obscureText: _obscurePassword,
-                              focusNode: _passwordFocusNode,
-                              toggleObscureText: _togglePasswordVisibility,
-                              validator: (value) {
-                                logDebug('Validating password: $value');
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your password';
-                                }
-                                return null;
-                              },
+                          ),
+                          SizedBox(height: 5.h),
+                          Text(
+                            "Sign in to your account using your ID and Password",
+                            style: LexendtextFont300.copyWith(
+                              fontSize: 13.sp,
+                              color: AppColor.textcolorSilver,
                             ),
-                            SizedBox(height: 20.h),
-
-                            viewModel.isLoading
-                                ? Center(child: CircularProgressIndicator())
-                                : LoginButton(onPressed: _login),
-                            if (viewModel.errorMessage != null)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 16.0),
-                                child: Text(
-                                  viewModel.errorMessage!,
-                                  style: TextStyle(color: Colors.red),
+                          ),
+                          SizedBox(height: 20.h),
+                          Form(
+                            key: _formKey,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                LoginTextFormField(
+                                  controller: _emailController,
+                                  hintText: 'User ID',
+                                  focusNode: _emailFocusNode,
+                                  onFieldSubmittedCallback: () {
+                                    Utils.fieldFocusChange(context, _emailFocusNode, _passwordFocusNode);
+                                  },
+                                  validator: (value) {
+                                    logDebug('Validating email: $value');
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter your email';
+                                    }
+                                    if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
+                                      return 'Please enter a valid email address';
+                                    }
+                                    return null;
+                                  },
                                 ),
-                              ),
-                          ],
+                                LoginTextFormField(
+                                  controller: _passwordController,
+                                  hintText: 'Password',
+                                  obscureText: _obscurePassword,
+                                  focusNode: _passwordFocusNode,
+                                  toggleObscureText: _togglePasswordVisibility,
+                                  validator: (value) {
+                                    logDebug('Validating password: $value');
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter your password';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                SizedBox(height: 20.h),
+                                LoginButton(onPressed: _login),
+                                if (viewModel.errorMessage != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 16.0),
+                                    child: Text(
+                                      viewModel.errorMessage!,
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (viewModel.isLoading)
+                    Container(
+                      color: Colors.black.withOpacity(0.5), // Optional: to darken the background
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: AppColor.btncolor,
                         ),
                       ),
-                    ],
-                  ),
-                ),
+                    ),
+                ],
               ),
             ),
           );

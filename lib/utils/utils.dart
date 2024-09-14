@@ -47,17 +47,21 @@ class Utils {
   //   );
   // }
 
-  static snackBar(String title, String message) {
-    if (message == null || message.isEmpty) {
-      message = 'An unknown error occurred';
+  static void snackBar(String title, String message) {
+    // Ensure that `Get.context` is available
+    if (Get.context != null) {
+      Get.snackbar(
+        title,
+        message,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColor.btncolor.withOpacity(0.7),
+        colorText: AppColor.whiteColor,
+        borderRadius: 8,
+      );
+    } else {
+      print('Get.context is null. Cannot display Snackbar.');
     }
-    Get.snackbar(
-      title ?? 'Error',
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-    );
   }
-
 
   // Static method to format dates
   static String formatDate(String date) {
