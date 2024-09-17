@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
+import 'package:printing/printing.dart';
 
 import '../../../../res/colors/app_color.dart';
 import '../../../../res/fonts/text_style.dart';
@@ -10,6 +12,7 @@ import '../../../../utils/shared_preferences_helper.dart';
 import '../../../registration/presentation/widgets/registration_form.dart';
 import '../../../registration/presentation/widgets/submit_button.dart';
 import '../../data/PrintStudentRecordRepository.dart';
+import '../../data/payment_slip_pdf_service.dart';
 import '../widgets/custom_dropdown_student.dart';
 import '../widgets/custom_dropdown_subscription.dart';
 
@@ -204,26 +207,31 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
               Expanded(
                 child: _filteredStudentNames.isNotEmpty
                     ? ListView(
-                        padding: EdgeInsets.zero,
-                        children: _filteredStudentNames.map((studentName) {
-                          return ListTile(
-                            title: Text(studentName),
-                            onTap: () {
-                              setState(() {
-                                _selectedStudent = studentName;
-                                _selectedStudentId = _studentMap[studentName];
-                                print(
-                                    'Selected Student: $_selectedStudent, ID: $_selectedStudentId');
-                              });
+                  padding: EdgeInsets.zero,
+                  children: _filteredStudentNames.map((studentName) {
+                    return ListTile(
+                      title: Text(studentName),
+                      onTap: () {
+                        setState(() {
+                          _selectedStudent = studentName;
+                          _selectedStudentId = _studentMap[studentName];
+                          print('Selected Student: $_selectedStudent, ID: $_selectedStudentId');
 
-                              // Fetch subscriptions based on selected student
-                              _fetchSubscriptions();
+                          // Clear previously selected subscription and text fields
+                          _selectedSubscription = null;
+                          _startDateController.clear();
+                          _endDateController.clear();
+                          _feesController.clear();
 
-                              Navigator.pop(context); // Close the bottom sheet
-                            },
-                          );
-                        }).toList(),
-                      )
+                          // Fetch subscriptions based on selected student
+                          _fetchSubscriptions();
+                        });
+
+                        Navigator.pop(context); // Close the bottom sheet
+                      },
+                    );
+                  }).toList(),
+                )
                     : Center(child: Text('No students found')),
               ),
             ],
@@ -232,6 +240,7 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
       },
     );
   }
+
 
   void _openBottomSheetSubscription() {
     showModalBottomSheet(
@@ -262,91 +271,93 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
               Expanded(
                 child: _filteredSubscriptions.isNotEmpty
                     ? ListView(
-                        padding: EdgeInsets.zero,
-                        children: _filteredSubscriptions.map((subscription) {
-                          return ListTile(
-                            title: Container(
-                              padding: EdgeInsets.all(16.w),
-                              decoration: BoxDecoration(
-                                color: AppColor.bglightgray,
-                                borderRadius: BorderRadius.circular(12.0),
-                              ),
-                              width: double.infinity,
-                              height: 70.h,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text(
-                                            subscription[
-                                                    'start_date'] ??
-                                                '',
-                                            // '22-12-2024 To 22-01-2025',
-                                            style: LexendtextFont500.copyWith(
-                                              color: AppColor.textcolorBlack,
-                                              fontSize: 14.sp,
-                                            ),
-                                          ),
-                                          Text(
-                                            'TO',
-                                            // '22-12-2024 To 22-01-2025',
-                                            style: LexendtextFont500.copyWith(
-                                              color: AppColor.textcolorBlack,
-                                              fontSize: 14.sp,
-                                            ),
-                                          ),
-                                          Text(
-                                            subscription[
-                                                    'end_date'] ??
-                                                '',
-                                            // '22-12-2024 To 22-01-2025',
-                                            style: LexendtextFont500.copyWith(
-                                              color: AppColor.textcolorBlack,
-                                              fontSize: 14.sp,
-                                            ),
-                                          ),
-                                        ],
+                  padding: EdgeInsets.zero,
+                  children: _filteredSubscriptions.map((subscription) {
+                    return ListTile(
+                      title: Container(
+                        padding: EdgeInsets.all(16.w),
+                        decoration: BoxDecoration(
+                          color: AppColor.bglightgray,
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        width: double.infinity,
+                        height: 70.h,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      subscription['start_date'] ?? '',
+                                      style: LexendtextFont500.copyWith(
+                                        color: AppColor.textcolorBlack,
+                                        fontSize: 14.sp,
                                       ),
-                                      Text(
-                                       // subscription['created_at'] ?? '',
-                                        'Upgraded At ${subscription['created_at']}',
-                                        //"Upgraded At At 28-Jul-2023",
-                                        // "Subscription End : $endDate",
-                                        style: mulishRegularFont300.copyWith(
-                                          color: AppColor.textcolor_gray,
-                                          fontSize: 10.sp,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Text(
-                                    '₹${subscription['fee']}',
-                                    // "₹1200",
-                                    style: LexendtextFont500.copyWith(
-                                      color: AppColor.textcolorBlack,
-                                      fontSize: 14.sp,
                                     ),
+                                    Text(
+                                      'TO',
+                                      style: LexendtextFont500.copyWith(
+                                        color: AppColor.textcolorBlack,
+                                        fontSize: 14.sp,
+                                      ),
+                                    ),
+                                    Text(
+                                      subscription['end_date'] ?? '',
+                                      style: LexendtextFont500.copyWith(
+                                        color: AppColor.textcolorBlack,
+                                        fontSize: 14.sp,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  'Upgraded At ${subscription['created_at']}',
+                                  style: mulishRegularFont300.copyWith(
+                                    color: AppColor.textcolor_gray,
+                                    fontSize: 10.sp,
                                   ),
-                                ],
+                                ),
+                              ],
+                            ),
+                            Text(
+                              '₹${subscription['fee']}',
+                              style: LexendtextFont500.copyWith(
+                                color: AppColor.textcolorBlack,
+                                fontSize: 14.sp,
                               ),
                             ),
-                            onTap: () {
-                              setState(() {
-                                _selectedSubscription =
-                                '${subscription['start_date']} TO ${subscription['end_date']}';
-                              });
-                              Navigator.pop(context); // Close the bottom sheet
-                            },
-                          );
-                        }).toList(),
-                      )
+                          ],
+                        ),
+                      ),
+                      onTap: () {
+                        setState(() {
+                          _selectedSubscription =
+                          '${subscription['start_date']} TO ${subscription['end_date']}';
+
+                          // Update the date and fee fields
+                          _startDateController.text =
+                              subscription['start_date'] ?? '';
+                          _endDateController.text =
+                              subscription['end_date'] ?? '';
+                          _feesController.text =
+                              subscription['fee'] ?? '';
+
+                          // Optionally log or perform other actions here
+                          print('Selected Subscription: $_selectedSubscription');
+                          print('Start Date: ${_startDateController.text}');
+                          print('End Date: ${_endDateController.text}');
+                          print('Fees: ${_feesController.text}');
+                        });
+
+                        Navigator.pop(context); // Close the bottom sheet
+                      },
+                    );
+                  }).toList(),
+                )
                     : Center(child: Text('No subscriptions found')),
               ),
             ],
@@ -360,20 +371,23 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
     final DateTime? selectedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2050),
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.light().copyWith(
-            primaryColor: Colors.blue,
-            hintColor: AppColor.btncolor,
-            buttonTheme: ButtonThemeData(
-              textTheme: ButtonTextTheme.primary,
+            colorScheme: ColorScheme.light(
+              primary: AppColor.btncolor,
+              onPrimary: AppColor.whiteColor,
             ),
-            dialogBackgroundColor: Colors.white,
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                foregroundColor: AppColor.btncolor,
+                foregroundColor: AppColor.whiteColor,
+                backgroundColor: AppColor.btncolor,
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
               ),
             ),
           ),
@@ -390,6 +404,55 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
       });
     }
   }
+
+  void _generateAndPrintPdf() async {
+    // Validate input fields
+    if (_selectedStudent == null || _selectedStudent!.isEmpty) {
+      _showErrorSnackbar('Please select a student.');
+      return;
+    }
+    if (_startDateController.text.isEmpty) {
+      _showErrorSnackbar('Start date cannot be empty.');
+      return;
+    }
+    if (_endDateController.text.isEmpty) {
+      _showErrorSnackbar('End date cannot be empty.');
+      return;
+    }
+    if (_feesController.text.isEmpty) {
+      _showErrorSnackbar('Fees cannot be empty.');
+      return;
+    }
+
+    // Proceed with PDF generation
+    final pdfService = PaymentSlipPdfService();
+    final pdfData = await pdfService.generatePaymentSlipPdf(
+      studentName: _selectedStudent!,
+      startDate: _startDateController.text,
+      endDate: _endDateController.text,
+      fee: _feesController.text,
+    );
+
+    // Display the PDF to the user for preview and printing
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdfData,
+    );
+  }
+
+// Method to show error Snackbar using ScaffoldMessenger
+  void _showErrorSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: TextStyle(color: Colors.white), // Customize text color here
+        ),
+        backgroundColor: Colors.red, // Customize background color here
+        duration: Duration(seconds: 3), // Duration of the Snackbar
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -537,7 +600,20 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
                   ),
                 ),
                 onPressed: () {
+                  // Print all the information to the console
+                  print('--- Payment Slip Information ---');
+                  print('Selected Student: $_selectedStudent');
+                  print('Selected Student ID: $_selectedStudentId');
+                  print('Selected Subscription: $_selectedSubscription');
+                  print('Start Date: ${_startDateController.text}');
+                  print('End Date: ${_endDateController.text}');
+                  print('Fees: ${_feesController.text}');
+                  print('----------------------------------');
                  // Navigator.pushNamed(context, AppRoutes.home);
+
+                  // Generate and print the PDF
+                  _generateAndPrintPdf();
+
                 },
                 child: Center(
                   child: Text(

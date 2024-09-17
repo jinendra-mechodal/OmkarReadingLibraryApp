@@ -21,6 +21,8 @@ class StudentDetailsViewModel extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  String? get studentName => _student?.name; // Add this getter
+
   Future<void> fetchStudentDetails(int studentId) async {
     _isLoading = true;
     _errorMessage = null;
@@ -45,5 +47,5 @@ class StudentDetailsViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
-
 }
+

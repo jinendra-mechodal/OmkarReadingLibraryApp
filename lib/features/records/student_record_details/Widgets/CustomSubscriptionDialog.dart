@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:library_app/utils/logger.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../res/colors/app_color.dart';
@@ -14,6 +15,7 @@ class CustomSubscriptionDialog extends StatelessWidget {
   final TextEditingController endDateController;
   final TextEditingController feesController;
   final int studentId;
+  final String studentName; // Add studentName parameter
 
   final FocusNode startDateFocusNode = FocusNode();
   final FocusNode endDateFocusNode = FocusNode();
@@ -24,6 +26,7 @@ class CustomSubscriptionDialog extends StatelessWidget {
     required this.endDateController,
     required this.feesController,
     required this.studentId,
+    required this.studentName, // Initialize studentName
   });
 
   @override
@@ -47,7 +50,7 @@ class CustomSubscriptionDialog extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    'New Subscription',
+                    'New Subscription for $studentName', // Display student name
                     style: montserratfont600.copyWith(
                       fontSize: 15.sp,
                       color: AppColor.textcolor_blue,
@@ -127,26 +130,81 @@ class CustomSubscriptionDialog extends StatelessWidget {
                             final endDate = endDateController.text;
                             final fees = feesController.text;
 
-                            // Call the ViewModel to submit the subscription
-                            await viewModel.submitSubscription(
-                              studentId: studentId,
-                              startDate: startDate,
-                              endDate: endDate,
-                              fee: fees,
-                            );
+                            // Print the input data for debugging
+                            logDebug('Form Validated');
+                            logDebug('Student ID: $studentId'); // Print student ID
+                            logDebug('Student Name: $studentName'); // Print student name
+                            logDebug('Start Date: $startDate');
+                            logDebug('End Date: $endDate');
+                            logDebug('Fees: $fees');
 
-                            if (viewModel.response != null && viewModel.response!.status == 'success') {
-                              Navigator.pushNamed(context, AppRoutes.studentDetailsSuccess);
-                            } else {
+                            try {
+                              // Call the ViewModel to submit the subscription
+                              await viewModel.submitSubscription(
+                                studentId: studentId,
+                                startDate: startDate,
+                                endDate: endDate,
+                                fee: fees,
+                              );
+
+                              // Print response from ViewModel
+                              if (viewModel.response != null) {
+                                logDebug('Response Status: ${viewModel.response!.status}');
+                                if (viewModel.response!.status == 'success') {
+                                  logDebug('Subscription submitted successfully.');
+
+                                  // Clear the form fields
+                                  startDateController.clear();
+                                  endDateController.clear();
+                                  feesController.clear();
+
+                                  // Navigate to the next page with the necessary data
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.studentDetailsSuccess,
+                                    arguments: {
+                                      'studentId': studentId,
+                                      'studentName': studentName,
+                                      'startDate': startDate,
+                                      'endDate': endDate,
+                                      'fees': fees,
+                                    },
+                                  );
+
+                                } else {
+                                  logDebug('Subscription submission failed. Error: ${viewModel.error}');
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(viewModel.error ?? 'Failed to submit subscription. Please try again.'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              } else {
+                                logDebug('No response from ViewModel.');
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('No response from the server. Please try again.'),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              // Print any errors encountered during the submission process
+                              logDebug('Exception caught: $e');
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text(viewModel.error ?? 'Failed to submit subscription. Please try again.'),
+                                  content: Text('An error occurred. Please try again.'),
                                   duration: Duration(seconds: 2),
                                 ),
                               );
                             }
+                          } else {
+                            logDebug('Form validation failed.');
                           }
                         },
+
+
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColor.btncolor,
                           shape: RoundedRectangleBorder(
@@ -177,8 +235,8 @@ class CustomSubscriptionDialog extends StatelessWidget {
     final DateTime? selectedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2050),
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.light().copyWith(

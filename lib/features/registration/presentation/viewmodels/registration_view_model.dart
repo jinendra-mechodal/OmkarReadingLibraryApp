@@ -20,7 +20,7 @@ class RegistrationViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   RegistrationResponse? get registrationResponse => _registrationResponse;
 
-  Future<void> registerStudent({
+  Future<String?> registerStudent({
     required String name,
     required String serialNo,
     required String contact,
@@ -42,10 +42,11 @@ class RegistrationViewModel extends ChangeNotifier {
       if (userId == null) {
         _errorMessage = 'User ID not found';
         logDebug('User ID not found');
-        return;
+        return null;
       }
 
       logDebug('User ID retrieved from SharedPreferences: $userId');
+
       // Call repository to register student
       final response = await _registrationRepository.registerStudent(
         name: name,
@@ -61,14 +62,20 @@ class RegistrationViewModel extends ChangeNotifier {
       _registrationResponse = response;
 
       if (response.status == 'success') {
+        final studentId = response.studentId;
         logDebug('Registration successful: ${response.message}');
+        logDebug('Student ID: $studentId'); // Print studentId
+        return studentId?.toString(); // Convert to String and return
+
       } else {
         _errorMessage = response.message;
         logDebug('Registration failed: ${response.message}');
+        return null;
       }
     } catch (e) {
       _errorMessage = 'An error occurred: $e';
       logDebug(_errorMessage!);
+      return null;
     } finally {
       _isLoading = false;
       notifyListeners();

@@ -1,4 +1,4 @@
-// lib/pages/superadmin_home_page.dart
+// lib/pages/super_admin_home_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -7,10 +7,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../res/colors/app_color.dart';
 import '../../../../../res/fonts/text_style.dart';
 import '../../../res/routes/app_routes.dart';
-import '../../../utils/logger.dart'; // Ensure you have this import or use your logging package
 import '../../../utils/custom_navigator_observer.dart';
+import '../../../utils/logger.dart'; // Ensure this import is correct
 import '../../login/view_models/login_usecase.dart';
-import '../../notification/ViewModel/notification_viewmodel.dart';
+import '../../notification/ViewModel/home_notification_viewmodel.dart';
 import 'ViewModel/student_dashboard_viewmodel.dart';
 
 class SuperAdminHomePage extends StatefulWidget {
@@ -26,31 +26,31 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
     Future.microtask(() async {
       try {
         final prefs = await SharedPreferences.getInstance();
-        print('SharedPreferences instance obtained.');
+        logDebug('SharedPreferences instance obtained.');
 
         final userIdString = prefs.getString('user_id');
-        print('Retrieved user ID as String: $userIdString');
+        logDebug('Retrieved user ID as String: $userIdString');
 
         final userId = userIdString != null ? int.tryParse(userIdString) : 0;
-        print('Parsed user ID: $userId');
+        logDebug('Parsed user ID: $userId');
 
         if (userId != null && userId != 0) {
-          print('Valid user ID found. Loading notifications and dashboard data...');
+          logDebug('Valid user ID found. Loading notifications and dashboard data...');
 
-          final notificationViewModel = Provider.of<NotificationViewModel>(context, listen: false);
-          print('Loading notifications...');
+          final notificationViewModel = Provider.of<HomeNotificationViewModel>(context, listen: false);
+          logDebug('Loading notifications...');
           await notificationViewModel.loadNotifications(userId);
-          print('Notifications loaded.');
+          logDebug('Notifications loaded.');
 
           final dashboardViewModel = Provider.of<StudentDashboardViewModel>(context, listen: false);
-          print('Loading dashboard data...');
+          logDebug('Loading dashboard data...');
           await dashboardViewModel.loadDashboardData(userId);
-          print('Dashboard data loaded.');
+          logDebug('Dashboard data loaded.');
         } else {
-          print('User ID not found in SharedPreferences or invalid.');
+          logDebug('User ID not found in SharedPreferences or invalid.');
         }
       } catch (e) {
-        print('Error loading data: $e');
+        logDebug('Error loading data: $e');
       }
     });
   }
@@ -60,24 +60,17 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
     ScreenUtil.init(context);
 
     final screenWidth = MediaQuery.of(context).size.width;
-    final notificationViewModel = Provider.of<NotificationViewModel>(context);
+    final notificationViewModel = Provider.of<HomeNotificationViewModel>(context);
     final dashboardViewModel = Provider.of<StudentDashboardViewModel>(context);
 
-    if (dashboardViewModel.isLoading) {
-      print('Dashboard data is loading...');
-    }
-
-    if (dashboardViewModel.error.isNotEmpty) {
-      print('Dashboard Error: ${dashboardViewModel.error}');
-    }
-
-    if (notificationViewModel.isLoading) {
-      print('Notifications are loading...');
-    }
-
-    if (notificationViewModel.error.isNotEmpty) {
-      print('Notifications Error: ${notificationViewModel.error}');
-    }
+    // Filtering today's notifications
+    final today = DateTime.now();
+    final todayNotifications = notificationViewModel.notifications.where((notification) {
+      final notificationDate = DateTime.parse(notification.endDate); // Assuming endDate is in ISO 8601 format
+      return notificationDate.year == today.year &&
+          notificationDate.month == today.month &&
+          notificationDate.day == today.day;
+    }).toList();
 
     return WillPopScope(
       onWillPop: () async {
@@ -85,12 +78,12 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
         final shouldLogout = await showLogoutConfirmationDialog(context);
 
         if (shouldLogout == true) {
-          print('User confirmed logout.');
+          logDebug('User confirmed logout.');
           await loginViewModel.logout(context);
-          print('User logged out.');
+          logDebug('User logged out.');
           return false;
         } else {
-          print('User canceled logout.');
+          logDebug('User canceled logout.');
           return false;
         }
       },
@@ -120,7 +113,7 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
               actions: [
                 InkWell(
                   onTap: () {
-                    print('Navigating to Student Registration...');
+                    logDebug('Navigating to Student Registration...');
                     Navigator.pushNamed(context, AppRoutes.registration);
                   },
                   child: Row(
@@ -154,7 +147,7 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
                 SizedBox(height: 20.h),
                 InkWell(
                   onTap: () {
-                    print('Navigating to Student Record Portal...');
+                    logDebug('Navigating to Student Record Portal...');
                     Navigator.pushNamed(context, AppRoutes.studentRecordScreen);
                   },
                   child: Container(
@@ -258,7 +251,7 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
                 ),
                 SizedBox(height: 20.h),
                 Text(
-                  "Notification",
+                  "Today's Notifications",
                   style: LexendtextFont500.copyWith(
                     fontSize: 14.sp,
                     color: AppColor.textcolorSilver,
@@ -267,21 +260,38 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
                 SizedBox(height: 20.h),
                 notificationViewModel.isLoading
                     ? Center(child: CircularProgressIndicator(color: AppColor.btncolor))
-                    : notificationViewModel.error.isNotEmpty
-                    ? Center(child: Text(notificationViewModel.error))
-                    : notificationViewModel.notifications.isEmpty
-                    ? Center(child: Text('No notifications available'))
-                    : ListView.builder(
-                  itemCount: notificationViewModel.notifications.length,
+                    : notificationViewModel.errorMessage != null
+                    ? Center(child: Text(notificationViewModel.errorMessage!))
+                    : todayNotifications.isEmpty
+                    ? Center(child: Text('No notifications for today'))
+                    :ListView.builder(
+                  itemCount: todayNotifications.length,
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
                   itemBuilder: (context, index) {
-                    final notification = notificationViewModel.notifications[index];
-                   // print('Displaying notification: ${notification.studentName}');
+                    final notification = todayNotifications[index];
+                    logDebug('Displaying notification: ${notification.studentName}');
+
+                    String expirationText;
+                    switch (notification.endingOn) {
+                      case 'Today':
+                        expirationText = 'Subscription expiring today';
+                        break;
+                      case 'Soon':
+                        expirationText = 'Subscription expiring soon';
+                        break;
+                      default:
+                        expirationText = 'Subscription Ending On: ${notification.endDate}';
+                    }
+
                     return GestureDetector(
                       onTap: () {
-                        print('Notification tapped: ${notification.studentName}');
-                        Navigator.pushNamed(context, '/studentDetails');
+                        logDebug('Notification tapped: ${notification.studentName}');
+                        Navigator.pushNamed(
+                          context,
+                          AppRoutes.studentRecordScreen,
+                          //arguments: notification.studentId,
+                        );
                       },
                       child: Container(
                         padding: EdgeInsets.all(16.0),
@@ -309,7 +319,7 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
                                       ),
                                       SizedBox(width: 4.0),
                                       Text(
-                                        'Subscription expiring soon',
+                                        expirationText,
                                         style: LexendtextFont400.copyWith(
                                           color: AppColor.textcolorBlack,
                                           fontSize: 11.sp,
@@ -345,6 +355,7 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
                     );
                   },
                 ),
+
               ],
             ),
           ),
@@ -354,7 +365,7 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
   }
 
   Widget _buildDashboardCard(BuildContext context, String title, String value, Color borderColor) {
-    print('Building Dashboard Card: $title with value $value');
+    logDebug('Building Dashboard Card: $title with value $value');
     return Container(
       width: 100.w,
       height: 65.h,
@@ -390,10 +401,10 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
   }
 
   Widget _buildActionItem(BuildContext context, String title, String route) {
-    print('Building Action Item: $title');
+    logDebug('Building Action Item: $title');
     return InkWell(
       onTap: () {
-        print('Navigating to route: $route');
+        logDebug('Navigating to route: $route');
         Navigator.pushNamed(context, route);
       },
       child: Padding(
@@ -416,29 +427,4 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
       ),
     );
   }
-
-// Widget _buildActionItem(BuildContext context, String title, String route) {
-  //   print('Building Action Item: $title');
-  //   return GestureDetector(
-  //     onTap: () {
-  //       print('Navigating to route: $route');
-  //       Navigator.pushNamed(context, route);
-  //     },
-  //     child: Row(
-  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //       children: [
-  //         Text(
-  //           title,
-  //           style: LexendtextFont600.copyWith(
-  //             fontSize: 14.sp,
-  //             color: AppColor.textcolorBlack,
-  //           ),
-  //         ),
-  //         Image.asset(
-  //           "assets/icons/right-icon.png",
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 }

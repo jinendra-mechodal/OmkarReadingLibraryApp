@@ -1,30 +1,29 @@
-// lib/viewmodels/notification_viewmodel.dart
-
+// lib/viewmodels/home_notification_viewmodel.dart
 import 'package:flutter/material.dart';
-import '../../../utils/logger.dart';
+import '../../../utils/logger.dart'; // Ensure this path is correct
 import '../data/notification_model.dart';
 import '../data/notification_repository.dart';
 
-class NotificationViewModel extends ChangeNotifier {
+class HomeNotificationViewModel extends ChangeNotifier {
   final NotificationRepository _repository = NotificationRepository();
 
   List<NotificationData> notifications = [];
   bool isLoading = false;
-  String error = '';
+  String? errorMessage;
 
   Future<void> loadNotifications(int userId) async {
     logDebug('Loading notifications for user_id: $userId'); // Debug log
     isLoading = true;
+    errorMessage = null; // Reset error message
     notifyListeners();
 
     try {
       // Fetch notifications from repository
       final response = await _repository.fetchNotifications(userId);
       notifications = _extractNotifications(response); // Process the response
-      error = '';
       logDebug('Notifications loaded: ${notifications.length} items'); // Debug log
     } catch (e) {
-      error = 'Failed to load notifications';
+      errorMessage = 'Failed to load notifications';
       logDebug('Error loading notifications: $e'); // Debug log
     } finally {
       isLoading = false;
@@ -39,7 +38,7 @@ class NotificationViewModel extends ChangeNotifier {
     List<NotificationData> allNotifications = [];
     response.data.forEach((date, notificationsList) {
       allNotifications.addAll(notificationsList);
-    });
+    }); // Correctly close the forEach method
 
     logDebug('Extracted notifications count: ${allNotifications.length}'); // Debug log
     return allNotifications;

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart'; // Import flutter_spinkit
+
 import '../../../utils/logger.dart';
 import '../data/login_repository.dart';
 
@@ -15,8 +17,13 @@ class LoginViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   String? get navigationRoute => _navigationRoute;
 
+  void setIsLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
+  }
+
   Future<void> login(String email, String password, BuildContext context) async {
-    _isLoading = true;
+    setIsLoading(true); // Set isLoading to true before API call
     _errorMessage = null;
     _navigationRoute = null;
     notifyListeners();
@@ -46,7 +53,7 @@ class LoginViewModel extends ChangeNotifier {
       logDebug('Navigation result: $_navigationRoute');
     } catch (e) {
       _errorMessage = e.toString();
-      logDebug(_errorMessage!);
+      logDebug('Error during login: $e');
 
       // Notify listeners so the UI can update
       notifyListeners();
@@ -58,8 +65,7 @@ class LoginViewModel extends ChangeNotifier {
         );
       }
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      setIsLoading(false); // Set isLoading to false after API call completes
     }
   }
 

@@ -69,6 +69,7 @@ class NotificationData {
   final String fee;
   final String createdAt;
   final String studentName;
+  final String endingOn;
 
   NotificationData({
     required this.id,
@@ -78,6 +79,7 @@ class NotificationData {
     required this.fee,
     required this.createdAt,
     required this.studentName,
+    required this.endingOn,
   });
 
   // Manually handle JSON parsing
@@ -93,6 +95,7 @@ class NotificationData {
         fee: json['fee'] as String,
         createdAt: json['created_at'] as String,
         studentName: json['student_name'] as String,
+        endingOn: json['ending_on']as String,
       );
     } catch (e) {
       logDebug('Error parsing NotificationData: $e'); // Debug log

@@ -1,13 +1,12 @@
-// lib/repositories/notification_repository.dart
-
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:library_app/res/app_url/app_url.dart';
 import '../../../utils/logger.dart';
 import 'notification_model.dart';
 
 class NotificationRepository {
-  final String apiUrl = "https://library.mechodal.com/notification.php";
+  final String apiUrl = AppUrl.notificationApi;
 
   Future<NotificationResponse> fetchNotifications(int userId) async {
     try {

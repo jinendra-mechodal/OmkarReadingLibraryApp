@@ -4,20 +4,21 @@ import 'package:flutter/material.dart';
 class PrintPaymentViewModel extends ChangeNotifier {
   String? selectedStudent;
   String? selectedSubscription;
+  int? _selectedStudentId;
 
-  List<String> studentNames = [
-    'John Doe',
-    'Jane Smith',
-    'Michael Johnson',
-    'Emily Davis',
-    // Add more student names as needed
-  ];
-
-  List<Map<String, String>> subscriptions = [
-    {'subscriptionPeriod': 'Monthly', 'upgradedAt': '01-09-2024', 'amount': '100 USD'},
-    {'subscriptionPeriod': 'Quarterly', 'upgradedAt': '01-09-2024', 'amount': '250 USD'},
-    // Add more subscriptions as needed
-  ];
+  // List<String> studentNames = [
+  //   'John Doe',
+  //   'Jane Smith',
+  //   'Michael Johnson',
+  //   'Emily Davis',
+  //   // Add more student names as needed
+  // ];
+  //
+  // List<Map<String, String>> subscriptions = [
+  //   {'subscriptionPeriod': 'Monthly', 'upgradedAt': '01-09-2024', 'amount': '100 USD'},
+  //   {'subscriptionPeriod': 'Quarterly', 'upgradedAt': '01-09-2024', 'amount': '250 USD'},
+  //   // Add more subscriptions as needed
+  // ];
 
   TextEditingController _startDateController = TextEditingController();
   TextEditingController _endDateController = TextEditingController();

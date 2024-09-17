@@ -42,8 +42,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     final DateTime? selectedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2050),
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.light().copyWith(
@@ -150,6 +150,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   }
                   return null;
                 },
+                maxLength: 20,
               ),
               SizedBox(height: 16.h),
               Row(
@@ -205,9 +206,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Please enter the fees';
                   }
+
+                  // Check if the input is numeric
+                  final numericRegex = RegExp(r'^\d+$');
+                  if (!numericRegex.hasMatch(value)) {
+                    return 'Please enter a valid number';
+                  }
+
+                  // Check the length of the input
+                  if (value.length > 4) {
+                    return 'Please enter a number up to 4 digits';
+                  }
+
                   return null;
                 },
+                maxLength: 4, // Optionally, you can use maxLength to visually limit input length
               ),
+
               SizedBox(height: 16.h),
               RegistrationTextFormField(
                 controller: _serialNumberController,
@@ -231,9 +246,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Please enter contact details';
                   }
+
+                  // Check if the input is numeric
+                  final numericRegex = RegExp(r'^\d+$');
+                  if (!numericRegex.hasMatch(value)) {
+                    return 'Please enter a valid number';
+                  }
+
+                  // Check the length of the input
+                  if (value.length < 10 || value.length > 15) { // Adjust the length as needed
+                    return 'Please enter a valid mobile number (10-15 digits)';
+                  }
+
                   return null;
                 },
+                maxLength: 15, // Optionally, you can use maxLength to visually limit input length
               ),
+
               SizedBox(height: 16.h),
               RegistrationTextFormField(
                 controller: _aadharNumberController,
@@ -241,12 +270,27 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 focusNode: _aadharNumberFocusNode,
                 keyboardType: TextInputType.number,
                 validator: (value) {
+                  // Check if the value is null or empty
                   if (value == null || value.isEmpty) {
                     return 'Please enter the Aadhar number';
                   }
+
+                  // Check if the value contains only digits
+                  final digitsOnly = RegExp(r'^\d+$');
+                  if (!digitsOnly.hasMatch(value)) {
+                    return 'Aadhar number must be numeric';
+                  }
+
+                  // Check if the value is exactly 12 digits long
+                  if (value.length != 12) {
+                    return 'Aadhar number must be 12 digits long';
+                  }
+
                   return null;
                 },
+                maxLength: 12, // Optional: Restricts the input length to 12 characters
               ),
+
               SizedBox(height: 16.h),
               RegistrationTextFormField(
                 controller: _addressController,
@@ -324,8 +368,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   final registrationViewModel = Provider.of<RegistrationViewModel>(context, listen: false);
 
                   try {
-                    // Register the student with the provided data
-                    await registrationViewModel.registerStudent(
+                    // Register the student with the provided data and get student_id
+                    final studentId = await registrationViewModel.registerStudent(
                       name: _studentNameController.text,
                       serialNo: _serialNumberController.text,
                       contact: _contactDetailsController.text,
@@ -346,14 +390,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     print('Contact Details: ${_contactDetailsController.text}');
                     print('Aadhar Number: ${_aadharNumberController.text}');
                     print('Address: ${_addressController.text}');
+                    print('Student ID: $studentId'); // Print the student_id
 
                     // Check if registration was successful
-                    if (registrationViewModel.registrationResponse?.status == 'success') {
+                    if (studentId != null) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Student Registered successfully')),
                       );
-                      // Redirect to Success page
-                      Navigator.pushNamed(context, AppRoutes.registrationSuccess);
+                      // Pass studentId to the success page
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.registrationSuccess,
+                        arguments: studentId, // Pass student_id as argument
+                      );
                     } else {
                       // Show error message if registration failed
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -373,6 +422,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   );
                 }
               }),
+
+
+
 
             ],
           ),

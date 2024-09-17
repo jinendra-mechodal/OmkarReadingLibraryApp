@@ -13,7 +13,9 @@ import 'features/home_page/Superwiser/ViewModel/superwiser_student_dashboard_vie
 import 'features/home_page/Superwiser/data/SuperwiserStudentDashboardRepository.dart';
 import 'features/login/data/login_repository.dart';
 import 'features/login/view_models/login_usecase.dart';
-import 'features/notification/ViewModel/notification_viewmodel.dart';
+
+import 'features/notification/ViewModel/NotificationViewModel.dart';
+import 'features/notification/ViewModel/home_notification_viewmodel.dart';
 import 'features/payment/ViewModal/PrintPaymentViewModel.dart';
 import 'features/records/student_record/view_modal_studentrecord/student_record_view_model.dart';
 import 'features/records/student_record_details/Widgets/data/subscription_repository.dart';
@@ -57,6 +59,10 @@ class MyApp extends StatelessWidget {
               NotificationViewModel(), // Ensure NotificationViewModel is correctly implemented
         ),
         ChangeNotifierProvider(
+          create: (context) =>
+              HomeNotificationViewModel(), // Ensure NotificationViewModel is correctly implemented
+        ),
+        ChangeNotifierProvider(
           create: (context) => StudentViewModel(context.read<
               StudentRepository>()), // Ensure StudentViewModel is correctly implemented
         ),
@@ -89,6 +95,8 @@ class MyApp extends StatelessWidget {
         ),
 
         ChangeNotifierProvider(create: (_) => PrintPaymentViewModel()),
+
+        ChangeNotifierProvider(create: (_) => NotificationViewModel()),
       ],
       child: ScreenUtilInit(
         designSize: const Size(360, 690),

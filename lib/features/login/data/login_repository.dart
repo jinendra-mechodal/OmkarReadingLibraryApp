@@ -35,6 +35,10 @@ class AuthRepository {
           final errorMessage = responseJson['message'] ?? 'Unexpected status received';
           throw AppExceptions(errorMessage, 'Unexpected Status: ');
         }
+      } else if (response.statusCode == 401) {
+        // Specifically handle 401 Unauthorized error
+        final errorMessage = responseJson['message'] ?? 'Unauthorized access';
+        throw AppExceptions(errorMessage, 'Unauthorized Error: ');
       } else {
         final errorMessage = 'Failed to login with status code ${response.statusCode}';
         throw FetchDataException(errorMessage);
@@ -45,3 +49,4 @@ class AuthRepository {
     }
   }
 }
+

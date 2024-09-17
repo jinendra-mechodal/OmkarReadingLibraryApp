@@ -20,6 +20,7 @@ class _StudentsRecordState extends State<StudentsRecord> {
   DateTime? _selectedDate;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _isFirstTime = true;
 
   @override
   void initState() {
@@ -57,7 +58,8 @@ class _StudentsRecordState extends State<StudentsRecord> {
 
       if (userId != null) {
         logDebug('User ID: $userId');
-        final viewModel = Provider.of<StudentRecordViewModel>(context, listen: false);
+        final viewModel =
+            Provider.of<StudentRecordViewModel>(context, listen: false);
         await viewModel.fetchStudentRecord(userId);
       } else {
         logDebug('User ID is either null or not a valid integer.');
@@ -76,7 +78,8 @@ class _StudentsRecordState extends State<StudentsRecord> {
       if (userId != null) {
         final formattedDate = date.toIso8601String().split('T')[0];
         logDebug('User ID: $userId, Date: $formattedDate');
-        final viewModel = Provider.of<StudentRecordViewModel>(context, listen: false);
+        final viewModel =
+            Provider.of<StudentRecordViewModel>(context, listen: false);
         await viewModel.fetchStudentRecords(userId, formattedDate);
       } else {
         logDebug('User ID is either null or not a valid integer.');
@@ -105,7 +108,8 @@ class _StudentsRecordState extends State<StudentsRecord> {
                 style: TextButton.styleFrom(
                   foregroundColor: AppColor.whiteColor,
                   backgroundColor: AppColor.btncolor,
-                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
@@ -174,7 +178,17 @@ class _StudentsRecordState extends State<StudentsRecord> {
               InkWell(
                 onTap: () {
                   logDebug('Navigating back...');
-                  Navigator.pop(context);
+
+                  if (_isFirstTime) {
+                    // If it's the first visit, just pop the navigation stack
+                    Navigator.pop(context);
+                    logDebug('First visit - popping once.');
+                  } else {
+                    // If returning from detail page, pop twice
+                    Navigator.pop(context); // Pop current screen
+                    Navigator.pop(context); // Pop previous screen
+                    logDebug('Not first visit - popping twice.');
+                  }
                 },
                 child: Row(
                   children: [
@@ -264,75 +278,87 @@ class _StudentsRecordState extends State<StudentsRecord> {
             SizedBox(height: 10.h),
             Expanded(
               child: viewModel.isLoading
-                  ? Center(child: CircularProgressIndicator(color: AppColor.btncolor))
+                  ? Center(
+                      child:
+                          CircularProgressIndicator(color: AppColor.btncolor))
                   : viewModel.errorMessage != null
-                  ? Center(child: Text(viewModel.errorMessage!))
-                  : viewModel.studentRecords.isEmpty
-                  ? Center(child: Text('No student records available'))
-                  : ListView.builder(
-                itemCount: filteredRecords.length,
-                itemBuilder: (context, index) {
-                  final record = filteredRecords[index];
-                  return InkWell(
-                    onTap: () {
-                      logDebug('Navigating to student details for ${record.studentId}');
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutes.studentsdetails,
-                        arguments: record.studentId,
-                      );
-                    },
-                    child: Container(
-                      margin: EdgeInsets.all(5.r),
-                      padding: EdgeInsets.symmetric(horizontal: 16.w),
-                      decoration: BoxDecoration(
-                        color: AppColor.bglightgray,
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      width: double.infinity,
-                      height: 70.h,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                record.name,
-                                style: LexendtextFont500.copyWith(
-                                  color: AppColor.textcolorBlack,
-                                  fontSize: 14.sp,
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    "Subscription End:",
-                                    style: PoppinstextFont400.copyWith(
-                                      color: AppColor.textcolorBlack,
-                                      fontSize: 10.sp,
+                      ? Center(child: Text(viewModel.errorMessage!))
+                      : viewModel.studentRecords.isEmpty
+                          ? Center(child: Text('No student records available'))
+                          : ListView.builder(
+                              itemCount: filteredRecords.length,
+                              itemBuilder: (context, index) {
+                                final record = filteredRecords[index];
+                                return InkWell(
+                                  onTap: () {
+                                    logDebug(
+                                        'Navigating to student details for ${record.studentId}');
+                                    Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.studentsdetails,
+                                      arguments: record.studentId,
+                                    );
+                                  },
+                                  child: Container(
+                                    margin: EdgeInsets.all(5.r),
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 16.w),
+                                    decoration: BoxDecoration(
+                                      color: AppColor.bglightgray,
+                                      borderRadius: BorderRadius.circular(12.0),
+                                    ),
+                                    width: double.infinity,
+                                    height: 70.h,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              record.name,
+                                              style: LexendtextFont500.copyWith(
+                                                color: AppColor.textcolorBlack,
+                                                fontSize: 14.sp,
+                                              ),
+                                            ),
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  "Subscription End:",
+                                                  style: PoppinstextFont400
+                                                      .copyWith(
+                                                    color:
+                                                        AppColor.textcolorBlack,
+                                                    fontSize: 10.sp,
+                                                  ),
+                                                ),
+                                                SizedBox(width: 2.w),
+                                                Text(
+                                                  "${record.endDate}",
+                                                  style: PoppinstextFont400
+                                                      .copyWith(
+                                                    color:
+                                                        AppColor.textcolor_gray,
+                                                    fontSize: 10.sp,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                        Image.asset(
+                                            "assets/icons/right-icon.png"),
+                                      ],
                                     ),
                                   ),
-                                  SizedBox(width: 2.w),
-                                  Text(
-                                    "${record.endDate}",
-                                    style: PoppinstextFont400.copyWith(
-                                      color: AppColor.textcolor_gray,
-                                      fontSize: 10.sp,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          Image.asset("assets/icons/right-icon.png"),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
+                                );
+                              },
+                            ),
             ),
             SizedBox(height: 10.h),
           ],

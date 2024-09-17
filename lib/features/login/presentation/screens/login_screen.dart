@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart'; // Import flutter_spinkit
 
 import '../../../../data/app_excaption.dart';
 import '../../../../res/colors/app_color.dart';
@@ -37,7 +38,6 @@ class _LoginScreenState extends State<LoginScreen> {
   void _togglePasswordVisibility() {
     setState(() {
       _obscurePassword = !_obscurePassword;
-      logDebug('Password visibility toggled. Obscure: $_obscurePassword');
     });
   }
 
@@ -46,16 +46,12 @@ class _LoginScreenState extends State<LoginScreen> {
       final email = _emailController.text;
       final password = _passwordController.text;
 
-      logDebug('Login button pressed');
-      logDebug('Email: $email');
-      logDebug('Password: $password');
-
       final loginViewModel = Provider.of<LoginViewModel>(context, listen: false);
 
+      loginViewModel.setIsLoading(true); // Set isLoading to true before making the API call
       loginViewModel.login(email, password, context).then((_) {
         final route = loginViewModel.navigationRoute;
         if (route != null) {
-          logDebug('Navigating to: $route');
           Navigator.pushNamedAndRemoveUntil(
             context,
             route,
@@ -63,11 +59,10 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         }
       }).catchError((error) {
-        logDebug('Login error: $error');
         // Handle error here if needed, but the error should be shown in the SnackBar from the ViewModel.
+      }).whenComplete(() {
+        loginViewModel.setIsLoading(false); // Set isLoading to false after API call completes
       });
-    } else {
-      logDebug('Form validation failed');
     }
   }
 
@@ -119,7 +114,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                     Utils.fieldFocusChange(context, _emailFocusNode, _passwordFocusNode);
                                   },
                                   validator: (value) {
-                                    logDebug('Validating email: $value');
                                     if (value == null || value.isEmpty) {
                                       return 'Please enter your email';
                                     }
@@ -136,7 +130,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   focusNode: _passwordFocusNode,
                                   toggleObscureText: _togglePasswordVisibility,
                                   validator: (value) {
-                                    logDebug('Validating password: $value');
                                     if (value == null || value.isEmpty) {
                                       return 'Please enter your password';
                                     }
@@ -164,8 +157,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     Container(
                       color: Colors.black.withOpacity(0.5), // Optional: to darken the background
                       child: Center(
-                        child: CircularProgressIndicator(
+                        child: SpinKitFadingCircle(
                           color: AppColor.btncolor,
+                          size: 50.0,
                         ),
                       ),
                     ),

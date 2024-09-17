@@ -5,6 +5,7 @@ import '../../features/home_page/home_page.dart';
 import '../../features/home_page/Superadmin/super_admin_home_page.dart';
 import '../../features/home_page/Superwiser/supervisor_home_page.dart';
 import '../../features/login/presentation/screens/login_screen.dart';
+
 import '../../features/notification/notification.dart';
 import '../../features/payment/presentation/screens/print_payment_screen.dart';
 import '../../features/records/student_record_details/student_details_page.dart';
@@ -54,7 +55,11 @@ class AppRoutes {
       case registration:
         return MaterialPageRoute(builder: (_) => RegistrationScreen());
       case registrationSuccess:
-        return MaterialPageRoute(builder: (_) => SuccessRegistrationScreen());
+        final studentId = settings.arguments as String?; // Expecting a String? here
+        return MaterialPageRoute(
+          builder: (_) => SuccessRegistrationScreen(studentId: studentId),
+        );
+
       case availableStudents:
         return MaterialPageRoute(builder: (_) => AvailableStudentScreen());
       case studentDetailsEdit:
@@ -75,7 +80,28 @@ class AppRoutes {
           return _errorRoute();
         }
       case studentDetailsSuccess:
-        return MaterialPageRoute(builder: (_) => SuccessStudentDetailsScreen());
+      // Ensure arguments are passed correctly
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null) {
+          final studentId = args['studentId'] as int;
+          final studentName = args['studentName'] as String;
+          final startDate = args['startDate'] as String;
+          final endDate = args['endDate'] as String;
+          final fees = args['fees'] as String;
+
+          return MaterialPageRoute(
+            builder: (_) => SuccessStudentDetailsScreen(
+              studentId: studentId,
+              studentName: studentName,
+              startDate: startDate,
+              endDate: endDate,
+              fees: fees,
+            ),
+          );
+        } else {
+          // Handle the case where arguments are null or invalid
+          return _errorRoute();
+        }
       case printPaymentScreen:
         return MaterialPageRoute(builder: (_) => PrintPaymentScreen());
       case studentReportScreen:

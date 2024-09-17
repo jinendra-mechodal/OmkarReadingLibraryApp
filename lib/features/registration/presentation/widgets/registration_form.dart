@@ -13,6 +13,7 @@ class RegistrationTextFormField extends StatelessWidget {
   final VoidCallback? toggleObscureText;
   final TextInputType? keyboardType;
   final int? maxLines;
+  final int? maxLength;
 
   RegistrationTextFormField({
     required this.controller,
@@ -23,6 +24,7 @@ class RegistrationTextFormField extends StatelessWidget {
     this.toggleObscureText,
     this.keyboardType,
     this.maxLines = 1,
+    this.maxLength,
   });
 
   @override
@@ -33,10 +35,12 @@ class RegistrationTextFormField extends StatelessWidget {
         controller: controller,
         obscureText: obscureText,
         focusNode: focusNode,
+        maxLength: maxLength,
         keyboardType: keyboardType,
         maxLines: maxLines,
         decoration: InputDecoration(
           hintText: hintText,
+          counterText: '',
           hintStyle: LexendtextFont300.copyWith(
             fontSize: 14.sp,
             color: AppColor.textcolorSilver,

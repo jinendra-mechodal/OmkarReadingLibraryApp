@@ -64,12 +64,9 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
           SnackBar(content: Text('Student deleted successfully')),
         );
 
-        // Wait for a moment to ensure the dialog is dismissed
-        await Future.delayed(Duration(milliseconds: 300));
-
         // Navigate back and indicate that the data has changed
-        Navigator.pop(context, true);
-
+        Navigator.pop(context);
+        Navigator.pushNamed(context, AppRoutes.studentRecordScreen);
       } catch (e) {
         logDebug('Error deleting student: $e');
         if (!mounted) return;
@@ -91,19 +88,51 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
           title: Text('Confirm Deletion'),
           content: Text('Are you sure you want to delete this student?'),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false); // User selected Cancel
-              },
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true); // User selected Delete
-                Navigator.of(context).pop(); // User selected Delete
-                Navigator.pushNamed(context, AppRoutes.studentRecordScreen);
-              },
-              child: Text('Delete'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                InkWell(
+                  onTap: () => Navigator.of(context).pop(false),
+                  child: Container(
+                    width: 100.w,
+                    height: 40.h,
+                    decoration: BoxDecoration(
+                      color: AppColor.btncolor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Cancel',
+                        style: LexendtextFont300.copyWith(
+                          color: AppColor.whiteColor,
+                          fontSize: 14.sp,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () => Navigator.of(context).pop(true),
+                  child: Container(
+                    width: 100.w,
+                    height: 40.h,
+                    decoration: BoxDecoration(
+                      color: AppColor.btncolor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Delete',
+                        style: LexendtextFont300.copyWith(
+                          color: AppColor.whiteColor,
+                          fontSize: 14.sp,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         );
@@ -111,8 +140,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
     );
   }
 
-
-  void _showCustomDialog(BuildContext context) {
+  void _showCustomDialog(BuildContext context, int studentId, String studentName) {
     final TextEditingController _startDateController = TextEditingController();
     final TextEditingController _endDateController = TextEditingController();
     final TextEditingController _feesController = TextEditingController();
@@ -124,7 +152,8 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
           startDateController: _startDateController,
           endDateController: _endDateController,
           feesController: _feesController,
-          studentId: widget.studentId,
+          studentId: studentId,
+          studentName: studentName, // Pass studentName here
         );
       },
     );
@@ -185,7 +214,18 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
             actions: [
               InkWell(
                 onTap: () {
-                  Navigator.pop(context);
+                  try {
+                    print('Go Back button tapped');
+                    // Ensure the navigation stack is intact
+                    Navigator.pop(context);
+                    Navigator.pushNamed(
+                      context,
+                      AppRoutes.studentRecordScreen,
+                    );
+                    // Additional checks if needed
+                  } catch (e) {
+                    print('Navigation error: $e');
+                  }
                 },
                 child: Row(
                   children: [
@@ -214,9 +254,11 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
       body: Consumer<StudentDetailsViewModel>(
         builder: (context, viewModel, child) {
           if (viewModel.isLoading) {
-            return Center(child: CircularProgressIndicator(
-              color: AppColor.btncolor,
-            ));
+            return Center(
+              child: CircularProgressIndicator(
+                color: AppColor.btncolor,
+              ),
+            );
           }
 
           if (viewModel.errorMessage != null) {
@@ -229,6 +271,9 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
           if (student == null) {
             return Center(child: Text('No student data available'));
           }
+
+          // Retrieve studentName from the viewModel
+          final studentName = student.name;
 
           return SingleChildScrollView(
             physics: AlwaysScrollableScrollPhysics(),
@@ -304,7 +349,6 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                     ),
                   ),
                 ),
-                SizedBox(height: 15.h),
 
                 // Student Details Container
                 Container(
@@ -349,14 +393,18 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                     ),
                   ),
                 ),
-                SizedBox(height: 18.h),
+                SizedBox(height: 8.h),
                 subscriptions.isEmpty
                     ? Center(child: Text('No subscription records available'))
                     : Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: subscriptions.map((subscription) {
+                  child: SizedBox(
+                    height: 300.h, // Adjust height as needed
+                    child: ListView.builder(
+                      physics: BouncingScrollPhysics(),
+                      itemCount: subscriptions.length,
+                      itemBuilder: (context, index) {
+                        final subscription = subscriptions[index];
                         return InkWell(
                           onTap: () {
                             logDebug('Subscription tapped: ${subscription.startDate} To ${subscription.endDate}');
@@ -404,7 +452,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                             ),
                           ),
                         );
-                      }).toList(),
+                      },
                     ),
                   ),
                 ),
@@ -413,29 +461,38 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
           );
         },
       ),
-      bottomSheet: Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(16.0),
-        color: Colors.white,
-        child: ElevatedButton(
-          onPressed: () {
-            _showCustomDialog(context);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColor.btncolor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0),
+      bottomSheet: Consumer<StudentDetailsViewModel>(
+        builder: (context, viewModel, child) {
+          final student = viewModel.student;
+          if (student == null) {
+            return SizedBox.shrink();
+          }
+
+          return Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            color: Colors.white,
+            child: ElevatedButton(
+              onPressed: () {
+                _showCustomDialog(context, widget.studentId, student.name); // Pass studentName here
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColor.btncolor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                padding: EdgeInsets.symmetric(vertical: 14.0),
+              ),
+              child: Text(
+                'Add New Subscription',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16.0,
+                ),
+              ),
             ),
-            padding: EdgeInsets.symmetric(vertical: 14.0),
-          ),
-          child: Text(
-            'Add New Subscription',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16.0,
-            ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
