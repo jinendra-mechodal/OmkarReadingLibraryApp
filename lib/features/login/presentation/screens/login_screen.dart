@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart'; // Import flutter_spinkit
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
-import '../../../../data/app_excaption.dart';
 import '../../../../res/colors/app_color.dart';
 import '../../../../res/fonts/text_style.dart';
+import '../../../../res/routes/app_routes.dart';
 import '../../../../utils/logger.dart';
-import '../../../../utils/utils.dart';
 import '../../data/login_repository.dart';
-import '../../view_models/login_usecase.dart';
 import '../widgets/login_button.dart';
 import '../widgets/login_text_form_field.dart';
 
@@ -25,6 +22,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
   bool _obscurePassword = true;
+  bool _isLoading = false; // Local loading state
+  String? _errorMessage; // Local error message
+  String? _navigationRoute; // Local navigation route
 
   @override
   void dispose() {
@@ -41,133 +41,167 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  void _login() {
+  Future<void> _login() async {
     if (_formKey.currentState?.validate() ?? false) {
       final email = _emailController.text;
       final password = _passwordController.text;
 
-      final loginViewModel = Provider.of<LoginViewModel>(context, listen: false);
-
-      loginViewModel.setIsLoading(true); // Set isLoading to true before making the API call
-      loginViewModel.login(email, password, context).then((_) {
-        final route = loginViewModel.navigationRoute;
-        if (route != null) {
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            route,
-                (Route<dynamic> route) => false,
-          );
-        }
-      }).catchError((error) {
-        // Handle error here if needed, but the error should be shown in the SnackBar from the ViewModel.
-      }).whenComplete(() {
-        loginViewModel.setIsLoading(false); // Set isLoading to false after API call completes
+      setState(() {
+        _isLoading = true; // Start loading
+        _errorMessage = null; // Reset error message
       });
+
+      print('Attempting to login with email: $email'); // Log email input
+      try {
+        final loginResponse = await AuthRepository().login(email, password);
+        print('Login API response: ${loginResponse.toString()}'); // Log the entire response
+
+        logDebug('Login successful: ${loginResponse.message}');
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_id', loginResponse.data.id);
+        await prefs.setString('user_type', loginResponse.data.type);
+
+        print('User ID: ${loginResponse.data.id}, User Type: ${loginResponse.data.type}'); // Log user details
+
+        // Set navigation route based on user type
+        _navigationRoute = _getNavigationRoute(loginResponse.data.type);
+        if (_navigationRoute == null) {
+          _navigationRoute = AppRoutes.superAdminHome; // Fallback for unknown types
+          print('Unknown user type. Defaulting to /super_admin_home');
+        }
+
+        print('Navigating to: $_navigationRoute'); // Log navigation route
+
+        // Navigate to the next screen
+        Navigator.pushNamedAndRemoveUntil(context, _navigationRoute!, (route) => false);
+      } catch (e) {
+        _errorMessage = e.toString();
+        logDebug('Error during login: $e');
+        print('Caught error during login: $_errorMessage'); // Log error message
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_errorMessage!)));
+        }
+      } finally {
+        setState(() {
+          _isLoading = false; // End loading
+        });
+        print('Loading ended.'); // Log loading state
+      }
+    } else {
+      print('Form validation failed.'); // Log validation failure
+    }
+  }
+
+// Helper method to get the navigation route based on user type
+  String? _getNavigationRoute(String userType) {
+    switch (userType) {
+      case 'Accountant':
+        return AppRoutes.accountantHome;
+      case 'Superadmin':
+        return AppRoutes.superAdminHome;
+      case 'Superwiser': // New case for Superwiser
+        return AppRoutes.supervisorHome; // Update with the correct route
+      default:
+        return AppRoutes.availableStudents; // Return null for unknown user types
+    }
+  }
+
+
+  Future<void> _logout(BuildContext context) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_id');
+      await prefs.remove('user_type');
+      logDebug('User session cleared.');
+
+      // Navigate to the login screen
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+    } catch (e) {
+      logDebug('Logout error: $e');
+      // Optionally show a Snackbar with the error
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Logout failed: $e')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => LoginViewModel(AuthRepository()),
-      child: Consumer<LoginViewModel>(
-        builder: (context, viewModel, child) {
-          return SafeArea(
-            child: Scaffold(
-              backgroundColor: AppColor.whiteColor,
-              body: Stack(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20.w),
-                    child: SingleChildScrollView(
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: AppColor.whiteColor,
+        body: Stack(
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 50),
+                    Image.asset("assets/images/login-img.png"),
+                    SizedBox(height: 20),
+                    Text("Welcome Back!", style: LexendtextFont500.copyWith(fontSize: 20)),
+                    SizedBox(height: 5),
+                    Text("Sign in to your account using your ID and Password",
+                        style: LexendtextFont300.copyWith(fontSize: 13, color: AppColor.textcolorSilver)),
+                    SizedBox(height: 20),
+                    Form(
+                      key: _formKey,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(height: 50.h),
-                          Image.asset("assets/images/login-img.png"),
-                          SizedBox(height: 20.h),
-                          Text(
-                            "Welcome Back!",
-                            style: LexendtextFont500.copyWith(
-                              fontSize: 20.sp,
-                            ),
+                          LoginTextFormField(
+                            controller: _emailController,
+                            hintText: 'User ID',
+                            focusNode: _emailFocusNode,
+                            onFieldSubmittedCallback: () {
+                              FocusScope.of(context).requestFocus(_passwordFocusNode);
+                            },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your email';
+                              }
+                              if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
+                                return 'Please enter a valid email address';
+                              }
+                              return null;
+                            },
                           ),
-                          SizedBox(height: 5.h),
-                          Text(
-                            "Sign in to your account using your ID and Password",
-                            style: LexendtextFont300.copyWith(
-                              fontSize: 13.sp,
-                              color: AppColor.textcolorSilver,
-                            ),
+                          LoginTextFormField(
+                            controller: _passwordController,
+                            hintText: 'Password',
+                            obscureText: _obscurePassword,
+                            focusNode: _passwordFocusNode,
+                            toggleObscureText: _togglePasswordVisibility,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your password';
+                              }
+                              return null;
+                            },
                           ),
-                          SizedBox(height: 20.h),
-                          Form(
-                            key: _formKey,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                LoginTextFormField(
-                                  controller: _emailController,
-                                  hintText: 'User ID',
-                                  focusNode: _emailFocusNode,
-                                  onFieldSubmittedCallback: () {
-                                    Utils.fieldFocusChange(context, _emailFocusNode, _passwordFocusNode);
-                                  },
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Please enter your email';
-                                    }
-                                    if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
-                                      return 'Please enter a valid email address';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                LoginTextFormField(
-                                  controller: _passwordController,
-                                  hintText: 'Password',
-                                  obscureText: _obscurePassword,
-                                  focusNode: _passwordFocusNode,
-                                  toggleObscureText: _togglePasswordVisibility,
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Please enter your password';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                SizedBox(height: 20.h),
-                                LoginButton(onPressed: _login),
-                                if (viewModel.errorMessage != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 16.0),
-                                    child: Text(
-                                      viewModel.errorMessage!,
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
+                          SizedBox(height: 20),
+                          LoginButton(onPressed: _login),
                         ],
                       ),
                     ),
-                  ),
-                  if (viewModel.isLoading)
-                    Container(
-                      color: Colors.black.withOpacity(0.5), // Optional: to darken the background
-                      child: Center(
-                        child: SpinKitFadingCircle(
-                          color: AppColor.btncolor,
-                          size: 50.0,
-                        ),
-                      ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
-          );
-        },
+            if (_isLoading)
+              Container(
+                color: Colors.black.withOpacity(0.5),
+                child: Center(
+                  child: CircularProgressIndicator (
+                    color: AppColor.btncolor,
+                  ),
+                 // child: SpinKitFadingCircle(color: AppColor.btncolor, size: 50.0),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

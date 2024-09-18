@@ -82,14 +82,29 @@ class _SupervisorHomePageState extends State<SupervisorHomePage> {
       );
     }
 
+    Future<void> _logout(BuildContext context) async {
+      try {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.remove('user_id');
+        await prefs.remove('user_type');
+        logDebug('User session cleared.');
+
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      } catch (e) {
+        logDebug('Logout error: $e');
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Logout failed: $e')));
+      }
+    }
+
     return WillPopScope(
       onWillPop: () async {
-        final loginViewModel = Provider.of<LoginViewModel>(context, listen: false);
+       // final loginViewModel = Provider.of<LoginViewModel>(context, listen: false);
 
         final shouldLogout = await showLogoutConfirmationDialog(context);
 
         if (shouldLogout == true) {
-          await loginViewModel.logout(context);
+          await _logout(context);
+         // await loginViewModel.logout(context);
           return false; // Prevent back navigation since logout should handle it
         }
         return false; // Prevent back navigation if user cancels

@@ -19,8 +19,8 @@ class StudentReportScreen extends StatefulWidget {
 
 class _StudentReportScreenState extends State<StudentReportScreen> {
   // Variables to store selected dates
-  String _startDate = 'Start Date';
-  String _endDate = 'End Date';
+  String _startDate = '';
+  String _endDate = '';
 
   // Variables to store fetched and filtered reports
   List<StudentReport> _reports = [];
@@ -33,6 +33,13 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
   void initState() {
     super.initState();
     _searchController.addListener(_filterReports);
+
+    // Set default dates to today
+    _startDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
+    _endDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
+
+    // Fetch reports for today's date
+    _fetchReports();
   }
 
   @override
@@ -45,7 +52,6 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
   // Function to filter reports based on search query
   void _filterReports() {
     final query = _searchController.text.toLowerCase();
-    print('Search Query: $query'); // Print query to console for debugging
     final filtered = _reports.where((report) {
       return report.studentName.toLowerCase().contains(query);
     }).toList();
@@ -122,7 +128,6 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
         endDate: endDateFormatted,
       );
 
-      // Use setState here, but only if needed
       if (mounted) {
         setState(() {
           _reports = viewModel.reports;
@@ -149,7 +154,11 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
   void _handleTap(String studentId) {
     print('Student ID: $studentId');
     // Navigate to the student details page
-    // Navigator.pushNamed(context, AppRoutes.studentsdetails);
+    Navigator.pushNamed(
+      context,
+      AppRoutes.studentsdetails,
+      arguments: studentId,
+    );
   }
 
   @override
@@ -236,7 +245,7 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
                                 SizedBox(width: 8.w),
                                 Expanded(
                                   child: Text(
-                                    _startDate,
+                                    _startDate.isEmpty ? 'Start Date' : _startDate,
                                     style: LexendtextFont300.copyWith(
                                       color: AppColor.textcolorSilver,
                                       fontSize: 13.sp,
@@ -285,7 +294,7 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
                                 SizedBox(width: 8.w),
                                 Expanded(
                                   child: Text(
-                                    _endDate,
+                                    _endDate.isEmpty ? 'End Date' : _endDate,
                                     style: LexendtextFont300.copyWith(
                                       color: AppColor.textcolorSilver,
                                       fontSize: 13.sp,
@@ -313,75 +322,73 @@ class _StudentReportScreenState extends State<StudentReportScreen> {
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-        child: Consumer<StudentReportViewModel>(
-          builder: (context, viewModel, child) {
-            if (viewModel.isLoading) {
-              return Center(child: CircularProgressIndicator());
-            }
+        child: Consumer<StudentReportViewModel>(builder: (context, viewModel, child) {
+          if (viewModel.isLoading) {
+            return Center(child: CircularProgressIndicator());
+          }
 
-            if (viewModel.error.isNotEmpty) {
-              return Center(child: Text('Error: ${viewModel.error}'));
-            }
+          if (viewModel.error.isNotEmpty) {
+            return Center(child: Text('Error: ${viewModel.error}'));
+          }
 
-            // Update reports and filteredReports only if viewModel.reports has changed
-            if (_reports != viewModel.reports) {
-              _reports = viewModel.reports;
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                _filterReports();
-              });
-            }
+          // Update reports and filteredReports only if viewModel.reports has changed
+          if (_reports != viewModel.reports) {
+            _reports = viewModel.reports;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _filterReports();
+            });
+          }
 
-            return ListView.builder(
-              itemCount: _filteredReports.length,
-              itemBuilder: (context, index) {
-                final report = _filteredReports[index];
-                return InkWell(
-                  onTap: () {
-                    _handleTap(report.studentId);
-                  },
-                  child: Container(
-                    margin: EdgeInsets.all(5.r),
-                    padding: EdgeInsets.all(16.w),
-                    decoration: BoxDecoration(
-                      color: AppColor.bglightgray,
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    width: double.infinity,
-                    height: 70.h,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              report.studentName,
-                              style: LexendtextFont500.copyWith(
-                                color: AppColor.textcolorBlack,
-                                fontSize: 14.sp,
-                              ),
-                            ),
-                            Text(
-                              "Subscription End : ${report.endDate}",
-                              style: PoppinstextFont400.copyWith(
-                                color: AppColor.textcolorBlack,
-                                fontSize: 10.sp,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Image.asset(
-                          "assets/icons/right-icon.png",
-                        ),
-                      ],
-                    ),
+          return ListView.builder(
+            itemCount: _filteredReports.length,
+            itemBuilder: (context, index) {
+              final report = _filteredReports[index];
+              return InkWell(
+                onTap: () {
+                  _handleTap(report.studentId);
+                },
+                child: Container(
+                  margin: EdgeInsets.all(5.r),
+                  padding: EdgeInsets.all(16.w),
+                  decoration: BoxDecoration(
+                    color: AppColor.bglightgray,
+                    borderRadius: BorderRadius.circular(12.0),
                   ),
-                );
-              },
-            );
-          },
-        ),
+                  width: double.infinity,
+                  height: 70.h,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            report.studentName,
+                            style: LexendtextFont500.copyWith(
+                              color: AppColor.textcolorBlack,
+                              fontSize: 14.sp,
+                            ),
+                          ),
+                          Text(
+                            "Subscription End: ${report.endDate}",
+                            style: PoppinstextFont400.copyWith(
+                              color: AppColor.textcolorBlack,
+                              fontSize: 10.sp,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Image.asset(
+                        "assets/icons/right-icon.png",
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        }),
       ),
     );
   }

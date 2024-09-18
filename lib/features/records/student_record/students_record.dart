@@ -179,15 +179,24 @@ class _StudentsRecordState extends State<StudentsRecord> {
                 onTap: () {
                   logDebug('Navigating back...');
 
+                  // if (_isFirstTime) {
+                  //   // If it's the first visit, just pop the navigation stack
+                  //   Navigator.pop(context);
+                  //   logDebug('First visit - popping once.');
+                  // } else {
+                  //   // If returning from detail page, pop twice
+                  //   Navigator.pop(context); // Pop current screen
+                  //   Navigator.pop(context); // Pop previous screen
+                  //   logDebug('Not first visit - popping twice.');
+                  // }
+
                   if (_isFirstTime) {
-                    // If it's the first visit, just pop the navigation stack
-                    Navigator.pop(context);
+                    Navigator.pop(context); // First time, pop once
                     logDebug('First visit - popping once.');
+                    _isFirstTime = false; // Set to false after the first pop
                   } else {
-                    // If returning from detail page, pop twice
-                    Navigator.pop(context); // Pop current screen
-                    Navigator.pop(context); // Pop previous screen
-                    logDebug('Not first visit - popping twice.');
+                    Navigator.popUntil(context, ModalRoute.withName(AppRoutes.studentRecordScreen));
+                    logDebug('Subsequent visit - navigating back to records screen.');
                   }
                 },
                 child: Row(

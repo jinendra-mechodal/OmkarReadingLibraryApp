@@ -217,11 +217,15 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                   try {
                     print('Go Back button tapped');
                     // Ensure the navigation stack is intact
-                    Navigator.pop(context);
-                    Navigator.pushNamed(
-                      context,
-                      AppRoutes.studentRecordScreen,
-                    );
+                     Navigator.pop(context);
+                    // Navigator.pushNamed(
+                    //   context,
+                    //   AppRoutes.studentRecordScreen,
+                    // );
+                    // Navigator.pushReplacementNamed(
+                    //   context,
+                    //   AppRoutes.studentRecordScreen,
+                    // );
                     // Additional checks if needed
                   } catch (e) {
                     print('Navigation error: $e');

@@ -50,6 +50,21 @@ class _AccountantHomePageState extends State<AccountantHomePage> {
     });
   }
 
+
+  Future<void> _logout(BuildContext context) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_id');
+      await prefs.remove('user_type');
+      logDebug('User session cleared.');
+
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+    } catch (e) {
+      logDebug('Logout error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Logout failed: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     logDebug('Building AccountantHomePage');
@@ -76,14 +91,15 @@ class _AccountantHomePageState extends State<AccountantHomePage> {
 
     return WillPopScope(
         onWillPop: () async {
-          final loginViewModel =
-              Provider.of<LoginViewModel>(context, listen: false);
+          // final loginViewModel =
+          //     Provider.of<LoginViewModel>(context, listen: false);
 
           final shouldLogout = await showLogoutConfirmationDialog(context);
 
           if (shouldLogout == true) {
             logDebug('User confirmed logout.');
-            await loginViewModel.logout(context);
+          //  await loginViewModel.logout(context);
+            await _logout(context);
             logDebug('User logged out.');
             return false; // Prevent back navigation since logout should handle it
           }
@@ -270,8 +286,8 @@ class _AccountantHomePageState extends State<AccountantHomePage> {
                           logDebug('Notification tapped: ${notification.studentName}');
                           Navigator.pushNamed(
                             context,
-                            AppRoutes.studentRecordScreen,
-                            //arguments: notification.studentId,
+                            AppRoutes.studentsdetails,
+                            arguments: notification.studentId,
                           );
                         },
                         child: Container(

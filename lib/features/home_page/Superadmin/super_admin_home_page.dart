@@ -55,6 +55,20 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
     });
   }
 
+  Future<void> _logout(BuildContext context) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_id');
+      await prefs.remove('user_type');
+      logDebug('User session cleared.');
+
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+    } catch (e) {
+      logDebug('Logout error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Logout failed: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context);
@@ -74,12 +88,13 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
 
     return WillPopScope(
       onWillPop: () async {
-        final loginViewModel = Provider.of<LoginViewModel>(context, listen: false);
+       // final loginViewModel = Provider.of<LoginViewModel>(context, listen: false);
         final shouldLogout = await showLogoutConfirmationDialog(context);
 
         if (shouldLogout == true) {
           logDebug('User confirmed logout.');
-          await loginViewModel.logout(context);
+       //   await loginViewModel.logout(context);
+          await _logout(context);
           logDebug('User logged out.');
           return false;
         } else {

@@ -38,10 +38,10 @@ class MyApp extends StatelessWidget {
     ]);
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (context) => LoginViewModel(
-              AuthRepository()), // Ensure AuthRepository is correctly implemented
-        ),
+        // ChangeNotifierProvider(
+        //   create: (context) => LoginViewModel(
+        //       AuthRepository()), // Ensure AuthRepository is correctly implemented
+        // ),
         ChangeNotifierProvider(
           create: (context) => RegistrationViewModel(
               RegistrationRepository()), // Ensure RegistrationRepository is correctly implemented
