@@ -34,6 +34,8 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
   String? _selectedStudent;
   String? _selectedSubscription;
 
+  String _paymentMode = 'Cash';
+
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _searchSubscriptionController =
       TextEditingController();
@@ -431,6 +433,8 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
       startDate: _startDateController.text,
       endDate: _endDateController.text,
       fee: _feesController.text,
+      payment_mode:_paymentMode,
+
     );
 
     // Display the PDF to the user for preview and printing
@@ -583,6 +587,31 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
                 }
                 return null;
               },
+            ),
+            SizedBox(height: 20.h),
+            Text(
+              'Payment Mode:',
+              style: LexendtextFont500.copyWith(
+                fontSize: 14.sp,
+                color: AppColor.textcolorBlack,
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Radio<String>(
+                  value: 'Cash',
+                  groupValue: _paymentMode,
+                  onChanged: (value) => setState(() => _paymentMode = value!),
+                ),
+                Text('Cash'),
+                Radio<String>(
+                  value: 'Online',
+                  groupValue: _paymentMode,
+                  onChanged: (value) => setState(() => _paymentMode = value!),
+                ),
+                Text('Online'),
+              ],
             ),
             SizedBox(height: 20.h),
             Container(

@@ -42,10 +42,10 @@ class MyApp extends StatelessWidget {
         //   create: (context) => LoginViewModel(
         //       AuthRepository()), // Ensure AuthRepository is correctly implemented
         // ),
-        ChangeNotifierProvider(
-          create: (context) => RegistrationViewModel(
-              RegistrationRepository()), // Ensure RegistrationRepository is correctly implemented
-        ),
+        // ChangeNotifierProvider(
+        //   create: (context) => RegistrationViewModel(
+        //       RegistrationRepository()), // Ensure RegistrationRepository is correctly implemented
+        // ),
         ChangeNotifierProvider(
           create: (context) =>
               StudentReportViewModel(), // Ensure StudentReportViewModel is correctly implemented
@@ -106,6 +106,7 @@ class MyApp extends StatelessWidget {
           return const MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'Library App',
+           // initialRoute: AppRoutes.registration,
             initialRoute: AppRoutes.splash,
             onGenerateRoute: AppRoutes.generateRoute,
           );

@@ -16,6 +16,7 @@ class StudentRecord {
   final String endDate;
   final String fee;
   final String createdAt;
+  final String payment_mode;
 
   StudentRecord({
     required this.id,
@@ -32,6 +33,7 @@ class StudentRecord {
     required this.endDate,
     required this.fee,
     required this.createdAt,
+    required this.payment_mode,
   });
 
   factory StudentRecord.fromJson(Map<String, dynamic> json) {
@@ -50,6 +52,7 @@ class StudentRecord {
       endDate: json['end_date'],
       fee: json['fee'],
       createdAt: json['created_at'],
+      payment_mode: json['payment_mode'],
     );
   }
 }

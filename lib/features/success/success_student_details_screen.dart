@@ -14,6 +14,8 @@ class SuccessStudentDetailsScreen extends StatelessWidget {
   final String startDate;
   final String endDate;
   final String fees;
+  final String payment_mode;
+
 
   const SuccessStudentDetailsScreen({
     super.key,
@@ -22,6 +24,7 @@ class SuccessStudentDetailsScreen extends StatelessWidget {
     required this.startDate,
     required this.endDate,
     required this.fees,
+    required this.payment_mode,
   });
 
   @override
@@ -32,6 +35,7 @@ class SuccessStudentDetailsScreen extends StatelessWidget {
     logDebug('$startDate');
     logDebug('$endDate');
     logDebug('$fees');
+    logDebug('$payment_mode');
 
     return Scaffold(
       backgroundColor: AppColor.whiteColor,
@@ -67,6 +71,7 @@ class SuccessStudentDetailsScreen extends StatelessWidget {
                     startDate: startDate,
                     endDate: endDate,
                     fee: fees,
+                    payment_mode: payment_mode,
                   );
 
                   // Print statements for debugging

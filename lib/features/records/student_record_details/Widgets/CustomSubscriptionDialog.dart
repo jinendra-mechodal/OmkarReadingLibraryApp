@@ -33,6 +33,8 @@ class CustomSubscriptionDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
 
+    String _paymentMode = 'Cash';
+
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setState) {
         final viewModel = Provider.of<SubscriptionViewModel>(context);
@@ -50,7 +52,7 @@ class CustomSubscriptionDialog extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    'New Subscription for $studentName', // Display student name
+                    'New Subscription', // Display student name
                     style: montserratfont600.copyWith(
                       fontSize: 15.sp,
                       color: AppColor.textcolor_blue,
@@ -116,6 +118,30 @@ class CustomSubscriptionDialog extends StatelessWidget {
                     },
                   ),
                   SizedBox(height: 20.h),
+                  Text(
+                    'Payment Mode:',
+                    style: LexendtextFont500.copyWith(
+                      fontSize: 14.sp,
+                      color: AppColor.textcolorBlack,
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Radio<String>(
+                        value: 'Cash',
+                        groupValue: _paymentMode,
+                        onChanged: (value) => setState(() => _paymentMode = value!),
+                      ),
+                      Text('Cash'),
+                      Radio<String>(
+                        value: 'Online',
+                        groupValue: _paymentMode,
+                        onChanged: (value) => setState(() => _paymentMode = value!),
+                      ),
+                      Text('Online'),
+                    ],
+                  ),
                   // Submit button
                   Align(
                     alignment: Alignment.bottomRight,
@@ -137,6 +163,7 @@ class CustomSubscriptionDialog extends StatelessWidget {
                             logDebug('Start Date: $startDate');
                             logDebug('End Date: $endDate');
                             logDebug('Fees: $fees');
+                            logDebug('_paymentMode: $_paymentMode');
 
                             try {
                               // Call the ViewModel to submit the subscription
@@ -145,6 +172,7 @@ class CustomSubscriptionDialog extends StatelessWidget {
                                 startDate: startDate,
                                 endDate: endDate,
                                 fee: fees,
+                                payment_mode: _paymentMode,
                               );
 
                               // Print response from ViewModel
@@ -168,6 +196,7 @@ class CustomSubscriptionDialog extends StatelessWidget {
                                       'startDate': startDate,
                                       'endDate': endDate,
                                       'fees': fees,
+                                      'payment_mode': _paymentMode,
                                     },
                                   );
 

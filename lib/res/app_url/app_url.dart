@@ -26,4 +26,6 @@ class AppUrl {
 
   static const String new_subscriptionApi = '$baseUrl/add_new_subscription.php' ;
 
+  static const String deviceCodeApi = '$baseUrl/get_device_code.php' ;
+
 }

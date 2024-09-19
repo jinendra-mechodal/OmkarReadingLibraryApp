@@ -1,8 +1,9 @@
 import 'dart:typed_data';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
-import 'package:intl/intl.dart'; // Add this for date formatting
+import 'dart:io';
 
 class PdfService {
   Future<Uint8List> generatePdf({
@@ -14,12 +15,18 @@ class PdfService {
     required String startDate,
     required String endDate,
     required String fee,
+    required String userId,
+    required String seatNo,
+    required String paymentMode,
+    required String empCode,
+    String? profileImagePath,
+    String? aadharFrontImagePath,
+    String? aadharBackImagePath,
   }) async {
     final pdf = pw.Document();
-
-    // Load the Poppins font and logo image
     final fontData = await rootBundle.load('assets/fonts/Poppins/Poppins-Regular.ttf');
     final font = pw.Font.ttf(fontData);
+
     final logoData = await rootBundle.load('assets/images/login-img.png');
     final logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
 
@@ -30,62 +37,98 @@ class PdfService {
     // Define a custom light grey color
     final lightGreyColor = PdfColor.fromInt(0xFFB0B0B0); // Light grey color
 
-    // Add form page
     pdf.addPage(
       pw.Page(
         build: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Center(
-                child: pw.Column(
-                  mainAxisSize: pw.MainAxisSize.min,
-                  children: [
-                    pw.Image(logoImage, height: 100),
 
-                    pw.Text(
-                      'Student Registration Form',
-                      style: pw.TextStyle(fontSize: 30, font: font, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.SizedBox(height: 40),
-                    _buildDetailsTable(
-                      studentName: studentName,
-                      serialNo: serialNo,
-                      contact: contact,
-                      aadharNo: aadharNo,
-                      address: address,
-                      startDate: startDate,
-                      endDate: endDate,
-                      fee: fee,
-                      font: font,
-                    ),
-                    pw.SizedBox(height: 200),
-                    // Footer with signature and created date
-                    pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      children: [
-                        pw.Text(
-                          'Created At: $formattedDate',
-                          style: pw.TextStyle(
-                            fontSize: 18,
-                            font: font,
-                            color: lightGreyColor, // Custom lighter color
-                          ),
-                        ),
-                        pw.Text(
-                          'Student Signature',
-                          style: pw.TextStyle(
-                            fontSize: 18,
-                            font: font,
-                          // color: lightGreyColor, // Custom lighter color
-                          ),
-                        ),
-                      ],
-                    ),
-
-                  ],
-                ),
+          pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.center,
+            children: [
+              pw.Image(
+                pw.MemoryImage(File(profileImagePath ?? '').readAsBytesSync()),
+                height: 100,
               ),
+              pw.SizedBox(width: 50),
+              pw.Image(logoImage, height: 100),
+        ],
+          ),
+
+              pw.SizedBox(height: 20),
+              pw.Text(
+                'Student Registration Form',
+                style: pw.TextStyle(fontSize: 30, font: font, fontWeight: pw.FontWeight.bold),
+              ),
+              pw.SizedBox(height: 20),
+              _buildDetailsTable(
+                studentName: studentName,
+                serialNo: serialNo,
+                contact: contact,
+                aadharNo: aadharNo,
+                address: address,
+                startDate: startDate,
+                endDate: endDate,
+                fee: fee,
+                userId: userId,
+                seatNo: seatNo,
+                paymentMode: paymentMode,
+                empCode: empCode,
+                font: font,
+              ),
+
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.SizedBox(width: 10), // Spacing
+                  pw.Transform.rotate(
+                    angle: 3.14 / 2, // Rotate 90 degrees (in radians)
+                    child: pw.Image(
+                      pw.MemoryImage(File(aadharFrontImagePath ?? '').readAsBytesSync()),
+                      height: 100,
+                      width: 200,
+                    ),
+                  ),
+                  pw.SizedBox(width: 10), // Spacing
+                  pw.Transform.rotate(
+                    angle: 3.14 / 2, // Rotate 90 degrees (in radians)
+                    child: pw.Image(
+                      pw.MemoryImage(File(aadharBackImagePath ?? '').readAsBytesSync()),
+                      height: 100,
+                      width: 200,
+                    ),
+                  ),
+                  pw.SizedBox(width: 10),
+                ],
+              ),
+
+              pw.SizedBox(height: 10),
+
+              // Footer with signature and created date
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text(
+                    'Created At: $formattedDate',
+                    style: pw.TextStyle(
+                      fontSize: 18,
+                      font: font,
+                      color: lightGreyColor, // Custom lighter color
+                    ),
+                  ),
+                  pw.Text(
+                    'Student Signature',
+                    style: pw.TextStyle(
+                      fontSize: 18,
+                      font: font,
+                      // color: lightGreyColor, // Custom lighter color
+                    ),
+                  ),
+                ],
+              ),
+
+
             ],
           );
         },
@@ -95,7 +138,6 @@ class PdfService {
     return pdf.save();
   }
 
-  // Utility method to build details table
   pw.Widget _buildDetailsTable({
     required String studentName,
     required String serialNo,
@@ -105,14 +147,14 @@ class PdfService {
     required String startDate,
     required String endDate,
     required String fee,
+    required String userId,
+    required String seatNo,
+    required String paymentMode,
+    required String empCode,
     required pw.Font font,
   }) {
     return pw.Table(
-      border: pw.TableBorder.all(width: 1, color: PdfColors.black),
-      columnWidths: {
-        0: pw.FractionColumnWidth(0.4),
-        1: pw.FractionColumnWidth(0.6),
-      },
+      border: pw.TableBorder.all(),
       children: [
         _buildTableRow('Student Name', studentName, font),
         _buildTableRow('Serial Number', serialNo, font),
@@ -122,11 +164,14 @@ class PdfService {
         _buildTableRow('Start Date', startDate, font),
         _buildTableRow('End Date', endDate, font),
         _buildTableRow('Fees', fee, font),
+        _buildTableRow('User ID', userId, font),
+        _buildTableRow('Seat No', seatNo, font),
+        _buildTableRow('Payment Mode', paymentMode, font),
+        _buildTableRow('Employee Code', empCode, font),
       ],
     );
   }
 
-  // Utility method to build a table row
   pw.TableRow _buildTableRow(String title, String value, pw.Font font) {
     return pw.TableRow(
       children: [

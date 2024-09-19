@@ -55,10 +55,22 @@ class AppRoutes {
       case registration:
         return MaterialPageRoute(builder: (_) => RegistrationScreen());
       case registrationSuccess:
-        final studentId = settings.arguments as String?; // Expecting a String? here
-        return MaterialPageRoute(
-          builder: (_) => SuccessRegistrationScreen(studentId: studentId),
-        );
+        final args = settings.arguments as Map<String, dynamic>?; // Expecting a Map here
+        if (args != null) {
+          final studentId = args['studentId'] as String;
+          final requestBody = args['requestBody'] as Map<String, dynamic>;
+          final images = args['images'] as Map<String, String>;
+
+          return MaterialPageRoute(
+            builder: (_) => SuccessRegistrationScreen(
+              studentId: studentId,
+              requestBody: requestBody,
+              images: images,
+            ),
+          );
+        } else {
+          return _errorRoute();
+        }
 
       case availableStudents:
         return MaterialPageRoute(builder: (_) => AvailableStudentScreen());
@@ -88,6 +100,7 @@ class AppRoutes {
           final startDate = args['startDate'] as String;
           final endDate = args['endDate'] as String;
           final fees = args['fees'] as String;
+          final paymentMode = args['payment_mode'] as String;
 
           return MaterialPageRoute(
             builder: (_) => SuccessStudentDetailsScreen(
@@ -96,6 +109,7 @@ class AppRoutes {
               startDate: startDate,
               endDate: endDate,
               fees: fees,
+                payment_mode: paymentMode,
             ),
           );
         } else {

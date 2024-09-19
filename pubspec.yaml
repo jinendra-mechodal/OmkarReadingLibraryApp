@@ -27,6 +27,9 @@ dependencies:
   flutter_spinkit: ^5.2.1
   pdf: ^3.11.1
   printing: ^5.13.2
+  image_picker: ^1.1.2
+  permission_handler: ^11.3.1
+  path_provider: ^2.0.2
 
 #------------------------  PACKAGES END ------------------------#
 

@@ -19,6 +19,7 @@ class SubscriptionViewModel extends ChangeNotifier {
     required String startDate,
     required String endDate,
     required String fee,
+    required String payment_mode,
   }) async {
     try {
       _response = await _repository.addSubscription(
@@ -26,6 +27,7 @@ class SubscriptionViewModel extends ChangeNotifier {
         startDate: startDate,
         endDate: endDate,
         fee: fee,
+        paymentMode: payment_mode,
       );
       _error = null;
     } catch (e) {
