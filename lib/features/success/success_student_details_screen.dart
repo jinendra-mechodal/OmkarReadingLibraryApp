@@ -14,6 +14,7 @@ class SuccessStudentDetailsScreen extends StatelessWidget {
   final String startDate;
   final String endDate;
   final String fees;
+  final String feeWord;
   final String payment_mode;
 
 
@@ -24,6 +25,7 @@ class SuccessStudentDetailsScreen extends StatelessWidget {
     required this.startDate,
     required this.endDate,
     required this.fees,
+    required this.feeWord,
     required this.payment_mode,
   });
 
@@ -35,6 +37,7 @@ class SuccessStudentDetailsScreen extends StatelessWidget {
     logDebug('$startDate');
     logDebug('$endDate');
     logDebug('$fees');
+    logDebug('$feeWord');
     logDebug('$payment_mode');
 
     return Scaffold(
@@ -71,6 +74,7 @@ class SuccessStudentDetailsScreen extends StatelessWidget {
                     startDate: startDate,
                     endDate: endDate,
                     fee: fees,
+                    feeWord: feeWord,
                     payment_mode: payment_mode,
                   );
 

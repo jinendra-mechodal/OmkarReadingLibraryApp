@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:library_app/res/app_url/app_url.dart';
 
@@ -34,6 +35,53 @@ class StudentService {
   }
 
 
+  // Future<StudentUpdateResponse> updateStudentDetails({
+  //   required int studentId,
+  //   required String name,
+  //   required String serialNo,
+  //   required String contact,
+  //   required String aadharNo,
+  //   required String address,
+  //   required String Empcode,
+  //   required String seatNo,
+  //   required String photo,
+  //   required String aadharFront,
+  //   required String aadharBack,
+  //
+  // }) async {
+  //
+  //   // Print the API URL and request body
+  //   print('API URL: ${AppUrl.recordeditApi}');
+  //
+  //   final response = await http.post(
+  //     Uri.parse(AppUrl.recordeditApi),
+  //     body: {
+  //       'student_id': studentId.toString(),
+  //       'name': name,
+  //       'serial_no': serialNo,
+  //       'contact': contact,
+  //       'aadhar_no': aadharNo,
+  //       'address': address,
+  //       'Empcode': Empcode,
+  //       'seat_no': seatNo, // Include seat number
+  //       'photo': photo, // Include profile photo URL
+  //       'aadhar_front': aadharFront, // Include Aadhar front image URL
+  //       'aadhar_back': aadharBack, // Include Aadhar back image URL
+  //     },
+  //   );
+  //
+  //   // Print the response status and body
+  //   print('Response Status: ${response.statusCode}');
+  //   print('Response Body: ${response.body}');
+  //
+  //
+  //   if (response.statusCode == 200) {
+  //     return StudentUpdateResponse.fromJson(json.decode(response.body));
+  //   } else {
+  //     throw Exception('Failed to update student details');
+  //   }
+  // }
+
   Future<StudentUpdateResponse> updateStudentDetails({
     required int studentId,
     required String name,
@@ -41,26 +89,58 @@ class StudentService {
     required String contact,
     required String aadharNo,
     required String address,
+    required String empCode,
+    required String seatNo,
+    required File? photo,
+    required File? aadharFront,
+    required File? aadharBack,
   }) async {
-    final response = await http.post(
+    // Create a multipart request
+    var request = http.MultipartRequest(
+      'POST',
       Uri.parse(AppUrl.recordeditApi),
-      body: {
-        'student_id': studentId.toString(),
-        'name': name,
-        'serial_no': serialNo,
-        'contact': contact,
-        'aadhar_no': aadharNo,
-        'address': address,
-      },
     );
 
-    if (response.statusCode == 200) {
-      return StudentUpdateResponse.fromJson(json.decode(response.body));
-    } else {
-      throw Exception('Failed to update student details');
-    }
-  }
+    // Add fields to the request
+    request.fields['student_id'] = studentId.toString();
+    request.fields['name'] = name;
+    request.fields['serial_no'] = serialNo;
+    request.fields['contact'] = contact;
+    request.fields['aadhar_no'] = aadharNo;
+    request.fields['address'] = address;
+    request.fields['Empcode'] = empCode;
+    request.fields['seat_no'] = seatNo;
 
+    // Add files to the request if they are provided
+    if (photo != null) {
+      request.files.add(await http.MultipartFile.fromPath('photo', photo.path));
+    }
+    if (aadharFront != null) {
+      request.files.add(await http.MultipartFile.fromPath('aadhar_front', aadharFront.path));
+    }
+    if (aadharBack != null) {
+      request.files.add(await http.MultipartFile.fromPath('aadhar_back', aadharBack.path));
+    }
+
+    // Print the request fields
+    print('API URL: ${AppUrl.recordeditApi}');
+    print('Request Fields: ${request.fields}');
+
+    // Send the request
+    final response = await request.send();
+
+    // Get the response body
+    final responseBody = await http.Response.fromStream(response);
+
+    // Print the response status and body
+    print('Response Status: ${response.statusCode}');
+    print('Response Body: ${responseBody.body}');
+
+    if (response.statusCode == 200) {
+      return StudentUpdateResponse.fromJson(json.decode(responseBody.body));
+    } else {
+      throw Exception('Failed to update student details: ${responseBody.body}');
+    } }
 
   Future<void> deleteStudent(int studentId) async {
     final response = await http.post(

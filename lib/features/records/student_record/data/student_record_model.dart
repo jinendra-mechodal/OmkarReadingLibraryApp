@@ -15,6 +15,7 @@ class StudentRecord {
   final String startDate;
   final String endDate;
   final String fee;
+  final String feeWord;
   final String createdAt;
   final String payment_mode;
 
@@ -32,6 +33,7 @@ class StudentRecord {
     required this.startDate,
     required this.endDate,
     required this.fee,
+    required this.feeWord,
     required this.createdAt,
     required this.payment_mode,
   });
@@ -51,6 +53,7 @@ class StudentRecord {
       startDate: json['start_date'],
       endDate: json['end_date'],
       fee: json['fee'],
+      feeWord: json['fees_in_word'],
       createdAt: json['created_at'],
       payment_mode: json['payment_mode'],
     );

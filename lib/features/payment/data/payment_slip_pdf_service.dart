@@ -10,6 +10,7 @@ class PaymentSlipPdfService {
     required String startDate,
     required String endDate,
     required String fee,
+    required String feeWord,
     required String payment_mode,
   }) async {
     final pdf = pw.Document();
@@ -51,6 +52,7 @@ class PaymentSlipPdfService {
                       startDate: startDate,
                       endDate: endDate,
                       fee: fee,
+                      feeWord: feeWord,
                       payment_mode : payment_mode,
                       font: font,
                     ),
@@ -87,6 +89,7 @@ class PaymentSlipPdfService {
     required String startDate,
     required String endDate,
     required String fee,
+    required String feeWord,
     required String payment_mode,
     required pw.Font font,
   }) {
@@ -101,6 +104,7 @@ class PaymentSlipPdfService {
         _buildTableRow('Start Date', startDate, font),
         _buildTableRow('End Date', endDate, font),
         _buildTableRow('Fees', fee, font),
+        _buildTableRow('Fees Word', feeWord, font),
         _buildTableRow('Payment mode', payment_mode, font),
       ],
     );

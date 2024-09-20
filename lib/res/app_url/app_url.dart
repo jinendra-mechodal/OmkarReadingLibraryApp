@@ -8,6 +8,7 @@ class AppUrl {
   static const String loginApi = '$baseUrl/login.php' ;
 
   static const String registerApi = '$baseUrl/student_register.php' ;
+  static const String demoregisterApi = '$baseUrl/student_register_demo.php' ;
 
   static const String reportApi = '$baseUrl/student_report.php' ;
 

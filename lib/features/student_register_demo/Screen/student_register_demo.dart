@@ -1,32 +1,31 @@
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart'; // Add this line for MediaType
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:library_app/features/registration/presentation/widgets/submit_button.dart';
-import 'package:library_app/res/app_url/app_url.dart';
-import 'package:library_app/res/colors/app_color.dart';
 import 'package:library_app/utils/shared_preferences_helper.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../../../../res/fonts/text_style.dart';
-import '../../../../res/routes/app_routes.dart';
-import '../../../../utils/logger.dart';
-import '../../data/device_code_model.dart';
-import '../widgets/image_picker_Widget.dart';
-import '../widgets/registration_form.dart';
-import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
+import '../../../res/app_url/app_url.dart';
+import '../../../res/colors/app_color.dart';
+import '../../../res/fonts/text_style.dart';
+import '../../../res/routes/app_routes.dart';
+import '../../../utils/logger.dart';
+import '../../registration/data/device_code_model.dart';
+import '../../registration/presentation/widgets/image_picker_Widget.dart';
+import '../../registration/presentation/widgets/registration_form.dart';
+import '../../registration/presentation/widgets/submit_button.dart';
 
-
-class RegistrationScreen extends StatefulWidget {
-  const RegistrationScreen({Key? key}) : super(key: key);
+class StudentRegisterDemo extends StatefulWidget {
+  const StudentRegisterDemo({super.key});
 
   @override
-  State<RegistrationScreen> createState() => _RegistrationScreenState();
+  State<StudentRegisterDemo> createState() => _StudentRegisterDemoState();
 }
 
-class _RegistrationScreenState extends State<RegistrationScreen> {
+class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
   final _formKey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
   File? _aadharFrontImageFile, _aadharBackImageFile;
@@ -196,7 +195,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     super.dispose();
   }
 
-
   void _validateAndSubmit() async {
     if (_formKey.currentState?.validate() ?? false) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -215,7 +213,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       final feeWord = _feesWordController.text;
       final seatNo = _setNumberController.text.toString();
       final paymentMode = _paymentMode;
-      final empCode = _employeeCodeController.text;
+      //final empCode = _employeeCodeController.text;
+      final empCode = '0000';
 
       // Retrieve userId from SharedPreferences
       final userId = await SharedPreferencesHelper.getUserId();
@@ -281,7 +280,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       // API call to register student using multipart request
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse(AppUrl.registerApi),
+        Uri.parse(AppUrl.demoregisterApi),
       );
 
       // Add form fields
@@ -327,7 +326,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         logDebug('Response received from server.');
 
         // Log the response body for debugging
-        logDebug('Response body on registration page: ${responseData.body}');
+        logDebug('Response body on demo registration page: ${responseData.body}');
 
         try {
           // Attempt to parse JSON after stripping out HTML
@@ -457,15 +456,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 },
               ),
               SizedBox(height: 20.h),
-              RegistrationTextFormField(
-                controller: _employeeCodeController,
-                hintText: 'Device Code',
-                focusNode: _employeeCodeFocus,
-                keyboardType: TextInputType.number,
-                validator: (value) => (value == null || value.isEmpty) ? 'Please enter the device code' : null,
-                maxLength: 4,
-              ),
-              SizedBox(height: 16.h),
+              // RegistrationTextFormField(
+              //   controller: _employeeCodeController,
+              //   hintText: 'Device Code',
+              //   focusNode: _employeeCodeFocus,
+              //   keyboardType: TextInputType.number,
+              //   validator: (value) => (value == null || value.isEmpty) ? 'Please enter the device code' : null,
+              //   maxLength: 4,
+              // ),
+              // SizedBox(height: 16.h),
               RegistrationTextFormField(
                 controller: _studentNameController,
                 hintText: 'Student Name',
@@ -533,7 +532,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
                   return null; // Validation passed
                 },
-                 maxLength: 3,
+                maxLength: 3,
               ),
 
 

@@ -45,9 +45,11 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
   final TextEditingController _feesController = TextEditingController();
+  final TextEditingController _feesWordController = TextEditingController();
   final FocusNode _startDateFocusNode = FocusNode();
   final FocusNode _endDateFocusNode = FocusNode();
   final FocusNode _feesFocusNode = FocusNode();
+  final FocusNode _feesWordFocus = FocusNode();
 
   @override
   void initState() {
@@ -127,6 +129,8 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
                 'start_date': record.startDate ?? 'N/A',
                 'end_date': record.endDate ?? 'N/A',
                 'fee': record.fee ?? 'N/A',
+                'fees_in_word': record.feeWord ?? 'N/A',
+                'payment_mode': record.payment_mode ?? 'N/A',
                 'created_at': record.createdAt ?? 'N/A',
               };
             }).toList();
@@ -243,7 +247,6 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
     );
   }
 
-
   void _openBottomSheetSubscription() {
     showModalBottomSheet(
       context: context,
@@ -347,12 +350,18 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
                               subscription['end_date'] ?? '';
                           _feesController.text =
                               subscription['fee'] ?? '';
+                          _feesWordController.text =
+                              subscription['fees_in_word'] ?? '';
+                          _paymentMode =
+                              subscription['payment_mode'] ?? 'Cash';
 
                           // Optionally log or perform other actions here
-                          print('Selected Subscription: $_selectedSubscription');
+                          print('Selected Subscription tap : $_selectedSubscription');
                           print('Start Date: ${_startDateController.text}');
                           print('End Date: ${_endDateController.text}');
                           print('Fees: ${_feesController.text}');
+                          print('Fees Word: ${_feesWordController.text}');
+                          print('Payment Mode: $_paymentMode');
                         });
 
                         Navigator.pop(context); // Close the bottom sheet
@@ -396,6 +405,7 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
           child: child!,
         );
       },
+
     );
 
     if (selectedDate != null) {
@@ -433,6 +443,7 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
       startDate: _startDateController.text,
       endDate: _endDateController.text,
       fee: _feesController.text,
+      feeWord: _feesWordController.text,
       payment_mode:_paymentMode,
 
     );
@@ -516,146 +527,160 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
       ),
       body: Padding(
         padding: EdgeInsets.all(16.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 20.h),
-            CustomDropdownStuden(
-              value: _selectedStudent,
-              hint: 'Select Student',
-              onTap: _openBottomSheetStudent,
-            ),
-            SizedBox(height: 20.h),
-            CustomDropdownSubscription(
-              value: _selectedSubscription,
-              hint: 'Select Subscription',
-              onTap: _openBottomSheetSubscription,
-            ),
-            SizedBox(height: 20.h),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => _selectDate(_startDateController),
-                    child: AbsorbPointer(
-                      child: RegistrationTextFormField(
-                        controller: _startDateController,
-                        hintText: 'Start Date',
-                        focusNode: _startDateFocusNode,
-                        keyboardType: TextInputType.datetime,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter the start date';
-                          }
-                          return null;
-                        },
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 20.h),
+              CustomDropdownStuden(
+                value: _selectedStudent,
+                hint: 'Select Student',
+                onTap: _openBottomSheetStudent,
+              ),
+              SizedBox(height: 20.h),
+              CustomDropdownSubscription(
+                value: _selectedSubscription,
+                hint: 'Select Subscription',
+                onTap: _openBottomSheetSubscription,
+              ),
+              SizedBox(height: 20.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => _selectDate(_startDateController),
+                      child: AbsorbPointer(
+                        child: RegistrationTextFormField(
+                          controller: _startDateController,
+                          hintText: 'Start Date',
+                          focusNode: _startDateFocusNode,
+                          keyboardType: TextInputType.datetime,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter the start date';
+                            }
+                            return null;
+                          },
+                        ),
                       ),
                     ),
                   ),
-                ),
-                SizedBox(width: 16.w),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => _selectDate(_endDateController),
-                    child: AbsorbPointer(
-                      child: RegistrationTextFormField(
-                        controller: _endDateController,
-                        hintText: 'End Date',
-                        focusNode: _endDateFocusNode,
-                        keyboardType: TextInputType.datetime,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter the end date';
-                          }
-                          return null;
-                        },
+                  SizedBox(width: 16.w),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => _selectDate(_endDateController),
+                      child: AbsorbPointer(
+                        child: RegistrationTextFormField(
+                          controller: _endDateController,
+                          hintText: 'End Date',
+                          focusNode: _endDateFocusNode,
+                          keyboardType: TextInputType.datetime,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter the end date';
+                            }
+                            return null;
+                          },
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20.h),
-            RegistrationTextFormField(
-              controller: _feesController,
-              hintText: 'Fees',
-              focusNode: _feesFocusNode,
-              keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter the fees';
-                }
-                return null;
-              },
-            ),
-            SizedBox(height: 20.h),
-            Text(
-              'Payment Mode:',
-              style: LexendtextFont500.copyWith(
-                fontSize: 14.sp,
-                color: AppColor.textcolorBlack,
+                ],
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Radio<String>(
-                  value: 'Cash',
-                  groupValue: _paymentMode,
-                  onChanged: (value) => setState(() => _paymentMode = value!),
-                ),
-                Text('Cash'),
-                Radio<String>(
-                  value: 'Online',
-                  groupValue: _paymentMode,
-                  onChanged: (value) => setState(() => _paymentMode = value!),
-                ),
-                Text('Online'),
-              ],
-            ),
-            SizedBox(height: 20.h),
-            Container(
-              height: 56.h,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(7.r),
-                color: AppColor.btncolor,
-              ),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(7),
-                  ),
-                ),
-                onPressed: () {
-                  // Print all the information to the console
-                  print('--- Payment Slip Information ---');
-                  print('Selected Student: $_selectedStudent');
-                  print('Selected Student ID: $_selectedStudentId');
-                  print('Selected Subscription: $_selectedSubscription');
-                  print('Start Date: ${_startDateController.text}');
-                  print('End Date: ${_endDateController.text}');
-                  print('Fees: ${_feesController.text}');
-                  print('----------------------------------');
-                 // Navigator.pushNamed(context, AppRoutes.home);
-
-                  // Generate and print the PDF
-                  _generateAndPrintPdf();
-
+              SizedBox(height: 20.h),
+              RegistrationTextFormField(
+                controller: _feesController,
+                hintText: 'Fees',
+                focusNode: _feesFocusNode,
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter the fees';
+                  }
+                  return null;
                 },
-                child: Center(
-                  child: Text(
-                    'Print Payment Slip',
-                    style: LexendtextFont700.copyWith(
-                      color: AppColor.whiteColor,
-                      fontSize: 16.sp,
+              ),
+              SizedBox(height: 20.h),
+              RegistrationTextFormField(
+                controller: _feesWordController,
+                hintText: 'Fees Amount in Words',
+                focusNode: _feesWordFocus,
+                validator: (value) => (value == null || value.isEmpty)
+                    ? 'Please enter the fees amount in words.'
+                    : null,
+                maxLength: 80,
+              ),
+              SizedBox(height: 20.h),
+              Text(
+                'Payment Mode:',
+                style: LexendtextFont500.copyWith(
+                  fontSize: 14.sp,
+                  color: AppColor.textcolorBlack,
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Radio<String>(
+                    value: 'Cash',
+                    groupValue: _paymentMode,
+                    onChanged: (value) => setState(() => _paymentMode = value!),
+                  ),
+                  Text('Cash'),
+                  Radio<String>(
+                    value: 'Online',
+                    groupValue: _paymentMode,
+                    onChanged: (value) => setState(() => _paymentMode = value!),
+                  ),
+                  Text('Online'),
+                ],
+              ),
+              SizedBox(height: 20.h),
+              Container(
+                height: 56.h,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(7.r),
+                  color: AppColor.btncolor,
+                ),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                  ),
+                  onPressed: () {
+                    // Print all the information to the console
+                    print('--- Payment Slip Information ---');
+                    print('Selected Student: $_selectedStudent');
+                    print('Selected Student ID: $_selectedStudentId');
+                    print('Selected Subscription: $_selectedSubscription');
+                    print('Start Date: ${_startDateController.text}');
+                    print('End Date: ${_endDateController.text}');
+                    print('Fees: ${_feesController.text}');
+                    print('Fees Word : ${_feesWordController.text}');
+                    print('Paymnt mode  : $_paymentMode');
+                    print('----------------------------------');
+                   // Navigator.pushNamed(context, AppRoutes.home);
+          
+                    // Generate and print the PDF
+                    _generateAndPrintPdf();
+          
+                  },
+                  child: Center(
+                    child: Text(
+                      'Print Payment Slip',
+                      style: LexendtextFont700.copyWith(
+                        color: AppColor.whiteColor,
+                        fontSize: 16.sp,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

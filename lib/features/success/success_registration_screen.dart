@@ -73,6 +73,7 @@ class _SuccessRegistrationScreenState extends State<SuccessRegistrationScreen> {
         startDate: widget.requestBody!['start_date'] ?? 'N/A',
         endDate: widget.requestBody!['end_date'] ?? 'N/A',
         fee: widget.requestBody!['fee'] ?? 'N/A',
+        feeWord: widget.requestBody!['fees_in_word'] ?? 'N/A',
         userId: widget.requestBody!['user_id'] ?? 'N/A',
         seatNo: widget.requestBody!['seat_no'] ?? 'N/A',
         paymentMode: widget.requestBody!['payment_mode'] ?? 'N/A',
@@ -95,7 +96,7 @@ class _SuccessRegistrationScreenState extends State<SuccessRegistrationScreen> {
       return;
     }
 
-    logDebug('Starting Payment Slip PDF generation for student: ${_studentRecord!.name}'); // Log start of PDF generation
+    logDebug('Starting Payment Slip PDF generation for student: ${_studentRecord!.feeWord}'); // Log start of PDF generation
 
     try {
       final paymentSlipPdfService = PaymentSlipPdfService(); // Correct service
@@ -104,6 +105,8 @@ class _SuccessRegistrationScreenState extends State<SuccessRegistrationScreen> {
         startDate: _studentRecord!.startDate,
         endDate: _studentRecord!.endDate,
         fee: _studentRecord!.fee,
+        feeWord: _studentRecord!.feeWord,
+        //feeWord: _studentRecord!.feeWord,
         payment_mode: _studentRecord!.payment_mode,
       );
 
@@ -143,6 +146,7 @@ class _SuccessRegistrationScreenState extends State<SuccessRegistrationScreen> {
               logDebug('Filtered Student Name: ${studentRecord.name}');
               logDebug('Filtered Student ID: ${studentRecord.studentId}');
               logDebug('Filtered Student Fee: ${studentRecord.fee}');
+              logDebug('Filtered Student FeeWord: ${studentRecord.feeWord}');
               logDebug('Filtered Student Start Date: ${studentRecord.startDate}');
               logDebug('Filtered Student End Date: ${studentRecord.endDate}');
               logDebug('Filtered Student Serial No: ${studentRecord.serialNo}');
@@ -254,7 +258,7 @@ class _SuccessRegistrationScreenState extends State<SuccessRegistrationScreen> {
                 //       );
                 //     }).toList(),
                 //   ),
-
+                //
                 // Column(
                 //   children: [
                 //     Text('Name: ${widget.requestBody?['name'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
@@ -265,6 +269,7 @@ class _SuccessRegistrationScreenState extends State<SuccessRegistrationScreen> {
                 //     Text('Start Date: ${widget.requestBody?['start_date'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
                 //     Text('End Date: ${widget.requestBody?['end_date'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
                 //     Text('Fee: ${widget.requestBody?['fee'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
+                //     Text('Fee: ${widget.requestBody?['fees_in_word'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
                 //     Text('User ID: ${widget.requestBody?['user_id'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
                 //     Text('Seat No: ${widget.requestBody?['seat_no'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
                 //     Text('Payment Mode: ${widget.requestBody?['payment_mode'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),

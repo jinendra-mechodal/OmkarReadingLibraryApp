@@ -14,25 +14,28 @@ class CustomSubscriptionDialog extends StatelessWidget {
   final TextEditingController startDateController;
   final TextEditingController endDateController;
   final TextEditingController feesController;
+  final TextEditingController feesInWordsController;
+
   final int studentId;
-  final String studentName; // Add studentName parameter
+  final String studentName;
 
   final FocusNode startDateFocusNode = FocusNode();
   final FocusNode endDateFocusNode = FocusNode();
   final FocusNode feesFocusNode = FocusNode();
+  final FocusNode feesInWordsFocusNode = FocusNode();
 
   CustomSubscriptionDialog({
     required this.startDateController,
     required this.endDateController,
     required this.feesController,
     required this.studentId,
-    required this.studentName, // Initialize studentName
+    required this.studentName,
+    required this.feesInWordsController,
   });
 
   @override
   Widget build(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
-
     String _paymentMode = 'Cash';
 
     return StatefulBuilder(
@@ -52,7 +55,7 @@ class CustomSubscriptionDialog extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    'New Subscription', // Display student name
+                    'New Subscription',
                     style: montserratfont600.copyWith(
                       fontSize: 15.sp,
                       color: AppColor.textcolor_blue,
@@ -118,6 +121,16 @@ class CustomSubscriptionDialog extends StatelessWidget {
                     },
                   ),
                   SizedBox(height: 20.h),
+                  RegistrationTextFormField(
+                    controller: feesInWordsController,
+                    hintText: 'Fees Amount in Words',
+                    focusNode: feesInWordsFocusNode,
+                    validator: (value) => (value == null || value.isEmpty)
+                        ? 'Please enter the fees amount in words.'
+                        : null,
+                    maxLength: 80,
+                  ),
+                  SizedBox(height: 20.h),
                   Text(
                     'Payment Mode:',
                     style: LexendtextFont500.copyWith(
@@ -155,15 +168,17 @@ class CustomSubscriptionDialog extends StatelessWidget {
                             final startDate = startDateController.text;
                             final endDate = endDateController.text;
                             final fees = feesController.text;
+                            final feesInWords = feesInWordsController.text; // Get fees in words
 
                             // Print the input data for debugging
                             logDebug('Form Validated');
-                            logDebug('Student ID: $studentId'); // Print student ID
-                            logDebug('Student Name: $studentName'); // Print student name
+                            logDebug('Student ID: $studentId');
+                            logDebug('Student Name: $studentName');
                             logDebug('Start Date: $startDate');
                             logDebug('End Date: $endDate');
                             logDebug('Fees: $fees');
-                            logDebug('_paymentMode: $_paymentMode');
+                            logDebug('Fees in Words: $feesInWords');
+                            logDebug('Payment Mode: $_paymentMode');
 
                             try {
                               // Call the ViewModel to submit the subscription
@@ -172,10 +187,11 @@ class CustomSubscriptionDialog extends StatelessWidget {
                                 startDate: startDate,
                                 endDate: endDate,
                                 fee: fees,
+                                feesInWords: feesInWords, // Pass fees in words
                                 payment_mode: _paymentMode,
                               );
 
-                              // Print response from ViewModel
+                              // Handle response
                               if (viewModel.response != null) {
                                 logDebug('Response Status: ${viewModel.response!.status}');
                                 if (viewModel.response!.status == 'success') {
@@ -185,6 +201,7 @@ class CustomSubscriptionDialog extends StatelessWidget {
                                   startDateController.clear();
                                   endDateController.clear();
                                   feesController.clear();
+                                  feesInWordsController.clear(); // Clear fees in words
 
                                   // Navigate to the next page with the necessary data
                                   Navigator.pushNamed(
@@ -196,10 +213,10 @@ class CustomSubscriptionDialog extends StatelessWidget {
                                       'startDate': startDate,
                                       'endDate': endDate,
                                       'fees': fees,
+                                      'fees_in_word': feesInWords, // Pass fees in words
                                       'payment_mode': _paymentMode,
                                     },
                                   );
-
                                 } else {
                                   logDebug('Subscription submission failed. Error: ${viewModel.error}');
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -219,7 +236,6 @@ class CustomSubscriptionDialog extends StatelessWidget {
                                 );
                               }
                             } catch (e) {
-                              // Print any errors encountered during the submission process
                               logDebug('Exception caught: $e');
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
@@ -232,8 +248,6 @@ class CustomSubscriptionDialog extends StatelessWidget {
                             logDebug('Form validation failed.');
                           }
                         },
-
-
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColor.btncolor,
                           shape: RoundedRectangleBorder(
@@ -290,7 +304,7 @@ class CustomSubscriptionDialog extends StatelessWidget {
     );
 
     if (selectedDate != null) {
-      final DateFormat formatter = DateFormat('yyyy-MM-dd');
+      final DateFormat formatter = DateFormat('dd-MM-yyyy');
       final String formattedDate = formatter.format(selectedDate);
 
       controller.text = formattedDate;

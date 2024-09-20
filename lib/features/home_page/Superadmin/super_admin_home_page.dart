@@ -261,6 +261,8 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
                       _buildActionItem(context, "Students Report", AppRoutes.studentReportScreen),
                       SizedBox(height: 26.h),
                       _buildActionItem(context, "Notification", AppRoutes.notification),
+                      SizedBox(height: 26.h),
+                      _buildActionItem(context, "Student register demo", AppRoutes.studentRegisterDemo),
                     ],
                   ),
                 ),
@@ -287,17 +289,17 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
                     final notification = todayNotifications[index];
                     logDebug('Displaying notification: ${notification.studentName}');
 
-                    String expirationText;
-                    switch (notification.endingOn) {
-                      case 'Today':
-                        expirationText = 'Subscription expiring today';
-                        break;
-                      case 'Soon':
-                        expirationText = 'Subscription expiring soon';
-                        break;
-                      default:
-                        expirationText = 'Subscription Ending On: ${notification.endDate}';
-                    }
+                    // String expirationText;
+                    // switch (notification.endingOn) {
+                    //   case 'Today':
+                    //     expirationText = 'Subscription expiring today';
+                    //     break;
+                    //   case 'Soon':
+                    //     expirationText = 'Subscription expiring soon';
+                    //     break;
+                    //   default:
+                    //     expirationText = 'Subscription Ending On: ${notification.endDate}';
+                    // }
 
                     return GestureDetector(
                       onTap: () {
@@ -334,7 +336,16 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
                                       ),
                                       SizedBox(width: 4.0),
                                       Text(
-                                        expirationText,
+                                       // expirationText,
+                                        'Subscription expiring',
+                                        style: LexendtextFont400.copyWith(
+                                          color: AppColor.textcolorBlack,
+                                          fontSize: 11.sp,
+                                        ),
+                                      ),
+                                      SizedBox(width: 4.0),
+                                      Text(
+                                        '${notification.endingOn}',
                                         style: LexendtextFont400.copyWith(
                                           color: AppColor.textcolorBlack,
                                           fontSize: 11.sp,

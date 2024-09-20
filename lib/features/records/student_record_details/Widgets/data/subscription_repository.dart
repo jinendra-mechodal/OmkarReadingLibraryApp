@@ -13,6 +13,7 @@ class SubscriptionRepository {
     required String startDate,
     required String endDate,
     required String fee,
+    required String feesInWords,
     required String paymentMode,
   }) async {
     final response = await http.post(
@@ -22,6 +23,7 @@ class SubscriptionRepository {
         'start_date': startDate,
         'end_date': endDate,
         'fee': fee,
+        'fees_in_word': feesInWords,
         'payment_mode': paymentMode,
       },
     );

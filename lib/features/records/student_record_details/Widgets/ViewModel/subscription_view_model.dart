@@ -19,6 +19,7 @@ class SubscriptionViewModel extends ChangeNotifier {
     required String startDate,
     required String endDate,
     required String fee,
+    required String feesInWords,
     required String payment_mode,
   }) async {
     try {
@@ -27,6 +28,7 @@ class SubscriptionViewModel extends ChangeNotifier {
         startDate: startDate,
         endDate: endDate,
         fee: fee,
+        feesInWords: feesInWords,
         paymentMode: payment_mode,
       );
       _error = null;

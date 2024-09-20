@@ -14,6 +14,7 @@ import '../../features/records/student_record/students_record.dart';
 import '../../features/registration/presentation/screens/registration_screen.dart';
 import '../../features/report/presentation/screens/student_report_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
+import '../../features/student_register_demo/Screen/student_register_demo.dart';
 import '../../features/success/success_registration_screen.dart';
 import '../../features/success/success_student_details_screen.dart';
 
@@ -22,6 +23,7 @@ class AppRoutes {
   static const String login = '/login';
   static const String home = '/home';
   static const String registration = '/registration';
+  static const String studentRegisterDemo = '/studentRegisterDemo';
   static const String printPaymentScreen = '/printPaymentScreen';
   static const String studentReportScreen = '/studentReportScreen';
   static const String studentRecordScreen = '/studentRecordScreen';
@@ -54,6 +56,9 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => NotificationPage());
       case registration:
         return MaterialPageRoute(builder: (_) => RegistrationScreen());
+      case studentRegisterDemo: // New case for StudentRegisterDemo
+        return MaterialPageRoute(builder: (_) => StudentRegisterDemo());
+
       case registrationSuccess:
         final args = settings.arguments as Map<String, dynamic>?; // Expecting a Map here
         if (args != null) {
@@ -100,6 +105,7 @@ class AppRoutes {
           final startDate = args['startDate'] as String;
           final endDate = args['endDate'] as String;
           final fees = args['fees'] as String;
+          final feeWord = args['fees_in_word'] as String;
           final paymentMode = args['payment_mode'] as String;
 
           return MaterialPageRoute(
@@ -109,6 +115,7 @@ class AppRoutes {
               startDate: startDate,
               endDate: endDate,
               fees: fees,
+              feeWord: feeWord,
                 payment_mode: paymentMode,
             ),
           );

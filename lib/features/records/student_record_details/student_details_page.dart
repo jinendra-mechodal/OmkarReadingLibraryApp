@@ -144,6 +144,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
     final TextEditingController _startDateController = TextEditingController();
     final TextEditingController _endDateController = TextEditingController();
     final TextEditingController _feesController = TextEditingController();
+    final TextEditingController _feesInWordsController = TextEditingController(); // Initialize the fees in words controller
 
     showDialog(
       context: context,
@@ -153,11 +154,13 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
           endDateController: _endDateController,
           feesController: _feesController,
           studentId: studentId,
-          studentName: studentName, // Pass studentName here
+          studentName: studentName,
+          feesInWordsController: _feesInWordsController, // Pass the initialized controller
         );
       },
     );
   }
+
 
   Widget _buildDetailRow(String label, String value, {bool isMultiline = false}) {
     return Row(
