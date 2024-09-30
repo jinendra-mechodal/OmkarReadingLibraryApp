@@ -63,32 +63,32 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
   @override
   void initState() {
     super.initState();
-    _fetchDeviceCode();
+   // _fetchDeviceCode();
   }
 
-  Future<void> _fetchDeviceCode() async {
-    final response = await http.get(Uri.parse(AppUrl.deviceCodeApi));
-
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
-      final deviceCodeResponse = DeviceCodeResponse.fromJson(jsonResponse);
-
-      if (deviceCodeResponse.status == 'success') {
-        setState(() {
-          _deviceCode = deviceCodeResponse.newDeviceCode;
-          _employeeCodeController.text = _deviceCode ?? '';
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${deviceCodeResponse.message}')),
-        );
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to fetch device code')),
-      );
-    }
-  }
+  // Future<void> _fetchDeviceCode() async {
+  //   final response = await http.get(Uri.parse(AppUrl.deviceCodeApi));
+  //
+  //   if (response.statusCode == 200) {
+  //     final jsonResponse = json.decode(response.body);
+  //     final deviceCodeResponse = DeviceCodeResponse.fromJson(jsonResponse);
+  //
+  //     if (deviceCodeResponse.status == 'success') {
+  //       setState(() {
+  //         _deviceCode = deviceCodeResponse.newDeviceCode;
+  //         _employeeCodeController.text = _deviceCode ?? '';
+  //       });
+  //     } else {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('Error: ${deviceCodeResponse.message}')),
+  //       );
+  //     }
+  //   } else {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Failed to fetch device code')),
+  //     );
+  //   }
+  // }
 
   Future<void> _selectDate(TextEditingController controller) async {
     final DateTime? selectedDate = await showDatePicker(
@@ -213,8 +213,8 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
       final feeWord = _feesWordController.text;
       final seatNo = _setNumberController.text.toString();
       final paymentMode = _paymentMode;
-      //final empCode = _employeeCodeController.text;
-      final empCode = '0000';
+      final empCode = _employeeCodeController.text;
+      //final empCode = '0000';
 
       // Retrieve userId from SharedPreferences
       final userId = await SharedPreferencesHelper.getUserId();
@@ -360,7 +360,7 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
             try {
               Navigator.pushNamed(
                 context,
-                AppRoutes.registrationSuccess,
+                AppRoutes.demoSuccessRegistration,
                 arguments: {
                   'studentId': studentId,
                   'requestBody': requestBody,
@@ -456,15 +456,15 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
                 },
               ),
               SizedBox(height: 20.h),
-              // RegistrationTextFormField(
-              //   controller: _employeeCodeController,
-              //   hintText: 'Device Code',
-              //   focusNode: _employeeCodeFocus,
-              //   keyboardType: TextInputType.number,
-              //   validator: (value) => (value == null || value.isEmpty) ? 'Please enter the device code' : null,
-              //   maxLength: 4,
-              // ),
-              // SizedBox(height: 16.h),
+              RegistrationTextFormField(
+                controller: _employeeCodeController,
+                hintText: 'Device Code',
+                focusNode: _employeeCodeFocus,
+                keyboardType: TextInputType.number,
+                validator: (value) => (value == null || value.isEmpty) ? 'Please enter the device code' : null,
+                maxLength: 4,
+              ),
+              SizedBox(height: 16.h),
               RegistrationTextFormField(
                 controller: _studentNameController,
                 hintText: 'Student Name',
@@ -507,7 +507,7 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
               SizedBox(height: 16.h),
               RegistrationTextFormField(
                 controller: _setNumberController,
-                hintText: 'Set a number',
+                hintText: 'Seat number',
                 focusNode: _setNumberFocus,
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -589,6 +589,7 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
                 focusNode: _serialNumberFocus,
                 keyboardType: TextInputType.number,
                 validator: (value) => (value == null || value.isEmpty) ? 'Please enter the serial number' : null,
+                maxLength: 10,
               ),
               SizedBox(height: 16.h),
               RegistrationTextFormField(

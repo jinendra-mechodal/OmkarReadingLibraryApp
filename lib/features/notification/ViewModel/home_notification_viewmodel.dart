@@ -19,7 +19,7 @@ class HomeNotificationViewModel extends ChangeNotifier {
 
     try {
       // Fetch notifications from repository
-      final response = await _repository.fetchNotifications(userId);
+      final response = await _repository.SuperAdminHomefetchNotifications(userId);
       notifications = _extractNotifications(response); // Process the response
       logDebug('Notifications loaded: ${notifications.length} items'); // Debug log
     } catch (e) {

@@ -55,6 +55,7 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
   void initState() {
     super.initState();
     _fetchStudentRecords();
+    _filteredStudentNames = List.from(_studentNames);
 
     _searchController.addListener(() {
       setState(() {
@@ -177,71 +178,77 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
   }
 
   void _openBottomSheetStudent() {
+    // Reset the filtered student names to all names when the bottom sheet opens
+    _filteredStudentNames = List.from(_studentNames);
+    _searchController.clear(); // Clear the search field
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return Container(
-          height: 600,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
-          ),
-          child: Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.all(16.0),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    prefixIcon: Container(
-                      padding: EdgeInsets.all(8.0),
-                      child: Image.asset(
-                        'assets/icons/search-icon.png',
-                        color: AppColor.textcolorSilver,
-                        height: 24.h,
-                        width: 24.w,
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Container(
+              height: 600,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) {
+                        print('Search Value: $value'); // Debugging print
+                        setState(() {
+                          if (value.isEmpty) {
+                            _filteredStudentNames = List.from(_studentNames);
+                          } else {
+                            _filteredStudentNames = _studentNames
+                                .where((studentName) =>
+                                studentName.toLowerCase().contains(value.toLowerCase()))
+                                .toList();
+                          }
+                          print('Filtered Names: $_filteredStudentNames'); // Debugging print
+                        });
+                      },
+                      decoration: InputDecoration(
+                        prefixIcon: Container(
+                          padding: EdgeInsets.all(8.0),
+                          child: Icon(Icons.search, color: AppColor.textcolorSilver),
+                        ),
+                        hintText: 'Search student...',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
                       ),
                     ),
-                    hintText: 'Search student...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: _filteredStudentNames.length,
+                      itemBuilder: (context, index) {
+                        final studentName = _filteredStudentNames[index];
+                        return ListTile(
+                          title: Text(studentName),
+                          onTap: () {
+                            setState(() {
+                              _selectedStudent = studentName;
+                              print('Selected Student: $_selectedStudent');
+                            });
+
+                            Navigator.pop(context); // Close the bottom sheet
+                          },
+                        );
+                      },
                     ),
                   ),
-                ),
+                ],
               ),
-              Expanded(
-                child: _filteredStudentNames.isNotEmpty
-                    ? ListView(
-                  padding: EdgeInsets.zero,
-                  children: _filteredStudentNames.map((studentName) {
-                    return ListTile(
-                      title: Text(studentName),
-                      onTap: () {
-                        setState(() {
-                          _selectedStudent = studentName;
-                          _selectedStudentId = _studentMap[studentName];
-                          print('Selected Student: $_selectedStudent, ID: $_selectedStudentId');
-
-                          // Clear previously selected subscription and text fields
-                          _selectedSubscription = null;
-                          _startDateController.clear();
-                          _endDateController.clear();
-                          _feesController.clear();
-
-                          // Fetch subscriptions based on selected student
-                          _fetchSubscriptions();
-                        });
-
-                        Navigator.pop(context); // Close the bottom sheet
-                      },
-                    );
-                  }).toList(),
-                )
-                    : Center(child: Text('No students found')),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

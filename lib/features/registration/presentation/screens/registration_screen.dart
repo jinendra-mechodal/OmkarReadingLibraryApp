@@ -64,32 +64,32 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchDeviceCode();
+   // _fetchDeviceCode();
   }
 
-  Future<void> _fetchDeviceCode() async {
-    final response = await http.get(Uri.parse(AppUrl.deviceCodeApi));
-
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
-      final deviceCodeResponse = DeviceCodeResponse.fromJson(jsonResponse);
-
-      if (deviceCodeResponse.status == 'success') {
-        setState(() {
-          _deviceCode = deviceCodeResponse.newDeviceCode;
-          _employeeCodeController.text = _deviceCode ?? '';
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${deviceCodeResponse.message}')),
-        );
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to fetch device code')),
-      );
-    }
-  }
+  // Future<void> _fetchDeviceCode() async {
+  //   final response = await http.get(Uri.parse(AppUrl.deviceCodeApi));
+  //
+  //   if (response.statusCode == 200) {
+  //     final jsonResponse = json.decode(response.body);
+  //     final deviceCodeResponse = DeviceCodeResponse.fromJson(jsonResponse);
+  //
+  //     if (deviceCodeResponse.status == 'success') {
+  //       setState(() {
+  //         _deviceCode = deviceCodeResponse.newDeviceCode;
+  //         _employeeCodeController.text = _deviceCode ?? '';
+  //       });
+  //     } else {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('Error: ${deviceCodeResponse.message}')),
+  //       );
+  //     }
+  //   } else {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Failed to fetch device code')),
+  //     );
+  //   }
+  // }
 
   Future<void> _selectDate(TextEditingController controller) async {
     final DateTime? selectedDate = await showDatePicker(
@@ -508,7 +508,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               SizedBox(height: 16.h),
               RegistrationTextFormField(
                 controller: _setNumberController,
-                hintText: 'Set a number',
+                hintText: 'Seat number',
                 focusNode: _setNumberFocus,
                 keyboardType: TextInputType.number,
                 validator: (value) {

@@ -153,8 +153,8 @@ class _AvailableStudentScreenState extends State<AvailableStudentScreen> {
                         // Redirect to studentsdetails page
                       },
                       child: Container(
-                       // padding: EdgeInsets.all(16.w),
-                      //  margin: EdgeInsets.only(top: 10.h, bottom: 5.h),
+                        // padding: EdgeInsets.all(16.w),
+                        //  margin: EdgeInsets.only(top: 10.h, bottom: 5.h),
                         decoration: BoxDecoration(
                           color: AppColor.bglightgray,
                           borderRadius: BorderRadius.circular(12.0),

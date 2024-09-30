@@ -79,7 +79,7 @@ class _NotificationPageState extends State<NotificationPage> {
         ..sort((a, b) {
           if (a.key == today) return -1;
           if (b.key == today) return 1;
-          return a.key.compareTo(b.key);
+          return b.key.compareTo(a.key);
         });
 
       return sortedEntries;
@@ -186,17 +186,17 @@ class _NotificationPageState extends State<NotificationPage> {
                   final notification = notifications[notificationIndex];
                   logDebug('Displaying notification: ${notification.studentName}');
 
-                  String expirationText;
-                  switch (notification.endingOn) {
-                    case 'Today':
-                      expirationText = 'Subscription expiring today';
-                      break;
-                    case 'Soon':
-                      expirationText = 'Subscription expiring soon';
-                      break;
-                    default:
-                      expirationText = 'Subscription Ending On: ${notification.endDate}';
-                  }
+                  // String expirationText;
+                  // switch (notification.endingOn) {
+                  //   case 'Today':
+                  //     expirationText = 'Subscription expiring today';
+                  //     break;
+                  //   case 'Soon':
+                  //     expirationText = 'Subscription expiring soon';
+                  //     break;
+                  //   default:
+                  //     expirationText = 'Subscription Ending On: ${notification.endDate}';
+                  // }
 
                   return GestureDetector(
                     onTap: () {
@@ -228,14 +228,41 @@ class _NotificationPageState extends State<NotificationPage> {
                             children: [
                               Row(
                                 children: [
+                                  // Text(
+                                  //   notification.studentName,
+                                  //   style: TextStyle(color: Colors.red, fontSize: 11.sp),
+                                  // ),
                                   Text(
-                                    notification.studentName,
-                                    style: TextStyle(color: Colors.red, fontSize: 11.sp),
+                                    notification.studentName.length > 10
+                                        ? '${notification.studentName.substring(0, 10)}...'
+                                        : notification.studentName,
+                                    style: LexendtextFont400.copyWith(
+                                      color: AppColor.textcolor_red,
+                                      fontSize: 11.sp,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                   ),
                                   SizedBox(width: 4.w),
+                                 //  Text(
+                                 //    expirationText,
+                                 //    style: TextStyle(color: Colors.black, fontSize: 10.sp),
+                                 //  ),
                                   Text(
-                                    expirationText,
-                                    style: TextStyle(color: Colors.black, fontSize: 10.sp),
+                                    // expirationText,
+                                    'Subscription expiring',
+                                    style: LexendtextFont400.copyWith(
+                                      color: AppColor.textcolorBlack,
+                                      fontSize: 10.sp,
+                                    ),
+                                  ),
+                                  SizedBox(width: 2.w),
+                                  Text(
+                                    '${notification.endingOn}',
+                                    style: LexendtextFont400.copyWith(
+                                      color: AppColor.textcolorBlack,
+                                      fontSize: 10.sp,
+                                    ),
                                   ),
                                 ],
                               ),

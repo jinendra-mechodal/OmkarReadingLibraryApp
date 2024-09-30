@@ -77,6 +77,7 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
     final notificationViewModel = Provider.of<HomeNotificationViewModel>(context);
     final dashboardViewModel = Provider.of<StudentDashboardViewModel>(context);
 
+
     // Filtering today's notifications
     final today = DateTime.now();
     final todayNotifications = notificationViewModel.notifications.where((notification) {
@@ -263,6 +264,8 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
                       _buildActionItem(context, "Notification", AppRoutes.notification),
                       SizedBox(height: 26.h),
                       _buildActionItem(context, "Student register demo", AppRoutes.studentRegisterDemo),
+                      SizedBox(height: 26.h),
+                      _buildActionItem(context, "Seat Record", AppRoutes.availableStudentRecordPage),
                     ],
                   ),
                 ),
@@ -289,17 +292,6 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
                     final notification = todayNotifications[index];
                     logDebug('Displaying notification: ${notification.studentName}');
 
-                    // String expirationText;
-                    // switch (notification.endingOn) {
-                    //   case 'Today':
-                    //     expirationText = 'Subscription expiring today';
-                    //     break;
-                    //   case 'Soon':
-                    //     expirationText = 'Subscription expiring soon';
-                    //     break;
-                    //   default:
-                    //     expirationText = 'Subscription Ending On: ${notification.endDate}';
-                    // }
 
                     return GestureDetector(
                       onTap: () {
@@ -311,7 +303,12 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
                         );
                       },
                       child: Container(
-                        padding: EdgeInsets.all(16.0),
+                        padding: EdgeInsets.only(
+                          top: 16.h,
+                          bottom: 16.h,
+                          right: 12.w,
+                          left: 12.w,
+                        ),
                         margin: EdgeInsets.only(bottom: 10.0),
                         decoration: BoxDecoration(
                           color: Colors.grey[200],
@@ -323,18 +320,29 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
                             SizedBox(width: 10.0),
                             Expanded(
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                //crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
                                     children: [
+                                      // Text(
+                                      //   notification.studentName,
+                                      //   style: LexendtextFont400.copyWith(
+                                      //     color: AppColor.textcolor_red,
+                                      //     fontSize: 11.sp,
+                                      //   ),
+                                      // ),
                                       Text(
-                                        notification.studentName,
+                                        notification.studentName.length > 10
+                                            ? '${notification.studentName.substring(0, 10)}...'
+                                            : notification.studentName,
                                         style: LexendtextFont400.copyWith(
                                           color: AppColor.textcolor_red,
                                           fontSize: 11.sp,
                                         ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
                                       ),
-                                      SizedBox(width: 4.0),
+                                      SizedBox(width: 2.w),
                                       Text(
                                        // expirationText,
                                         'Subscription expiring',
@@ -343,7 +351,7 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
                                           fontSize: 11.sp,
                                         ),
                                       ),
-                                      SizedBox(width: 4.0),
+                                      SizedBox(width: 2.w),
                                       Text(
                                         '${notification.endingOn}',
                                         style: LexendtextFont400.copyWith(

@@ -44,19 +44,18 @@ class PdfService {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-
-          pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.center,
-            children: [
-              pw.Image(
-                pw.MemoryImage(File(profileImagePath ?? '').readAsBytesSync()),
-                height: 80,
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.center,
+                children: [
+                  if (profileImagePath != null && profileImagePath.isNotEmpty)
+                    pw.Image(
+                      pw.MemoryImage(File(profileImagePath).readAsBytesSync()),
+                      height: 50,
+                    ),
+                  pw.SizedBox(width: 50),
+                  pw.Image(logoImage, height: 100),
+                ],
               ),
-              pw.SizedBox(width: 50),
-              pw.Image(logoImage, height: 100),
-        ],
-          ),
-
               pw.SizedBox(height: 10),
               pw.Text(
                 'Student Registration Form',
@@ -79,34 +78,33 @@ class PdfService {
                 empCode: empCode,
                 font: font,
               ),
-
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.SizedBox(width: 10), // Spacing
-                  pw.Transform.rotate(
-                    angle: 3.14 / 2, // Rotate 90 degrees (in radians)
-                    child: pw.Image(
-                      pw.MemoryImage(File(aadharFrontImagePath ?? '').readAsBytesSync()),
-                      height: 100,
-                      width: 200,
+                  if (aadharFrontImagePath != null && aadharFrontImagePath.isNotEmpty)
+                    pw.Transform.rotate(
+                      angle: 3.14 / 2, // Rotate 90 degrees (in radians)
+                      child: pw.Image(
+                        pw.MemoryImage(File(aadharFrontImagePath).readAsBytesSync()),
+                        height: 100,
+                        width: 200,
+                      ),
                     ),
-                  ),
                   pw.SizedBox(width: 10), // Spacing
-                  pw.Transform.rotate(
-                    angle: 3.14 / 2, // Rotate 90 degrees (in radians)
-                    child: pw.Image(
-                      pw.MemoryImage(File(aadharBackImagePath ?? '').readAsBytesSync()),
-                      height: 100,
-                      width: 200,
+                  if (aadharBackImagePath != null && aadharBackImagePath.isNotEmpty)
+                    pw.Transform.rotate(
+                      angle: 3.14 / 2, // Rotate 90 degrees (in radians)
+                      child: pw.Image(
+                        pw.MemoryImage(File(aadharBackImagePath).readAsBytesSync()),
+                        height: 100,
+                        width: 200,
+                      ),
                     ),
-                  ),
                   pw.SizedBox(width: 10),
                 ],
               ),
-
               pw.SizedBox(height: 10),
-
               // Footer with signature and created date
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -124,13 +122,10 @@ class PdfService {
                     style: pw.TextStyle(
                       fontSize: 18,
                       font: font,
-                      // color: lightGreyColor, // Custom lighter color
                     ),
                   ),
                 ],
               ),
-
-
             ],
           );
         },
@@ -168,10 +163,10 @@ class PdfService {
         _buildTableRow('End Date', endDate, font),
         _buildTableRow('Fees', fee, font),
         _buildTableRow('Fees Word', feeWord, font),
-       // _buildTableRow('User ID', userId, font),
+        //_buildTableRow('User ID', userId, font),
         _buildTableRow('Seat No', seatNo, font),
         _buildTableRow('Payment Mode', paymentMode, font),
-        _buildTableRow('Device Code', empCode, font),
+        _buildTableRow('Device  Code', empCode, font),
       ],
     );
   }
