@@ -91,6 +91,11 @@ class PdfService {
                         width: 200,
                       ),
                     ),
+                    // pw.Image(
+                    //   pw.MemoryImage(File(aadharFrontImagePath).readAsBytesSync()),
+                    //   height: 100,
+                    //   width: 200,
+                    // ),
                   pw.SizedBox(width: 10), // Spacing
                   if (aadharBackImagePath != null && aadharBackImagePath.isNotEmpty)
                     pw.Transform.rotate(
@@ -101,6 +106,11 @@ class PdfService {
                         width: 200,
                       ),
                     ),
+                    // pw.Image(
+                    //   pw.MemoryImage(File(aadharBackImagePath).readAsBytesSync()),
+                    //   height: 100,
+                    //   width: 200,
+                    // ),
                   pw.SizedBox(width: 10),
                 ],
               ),

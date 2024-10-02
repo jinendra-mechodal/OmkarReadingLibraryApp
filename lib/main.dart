@@ -109,8 +109,8 @@ class MyApp extends StatelessWidget {
             title: 'Library App',
            // initialRoute: AppRoutes.registration,
              initialRoute: AppRoutes.splash,
-             onGenerateRoute: AppRoutes.generateRoute,
-           // home: Demo(),
+              onGenerateRoute: AppRoutes.generateRoute,
+            //home: Demo(),
           );
         },
       ),
@@ -121,12 +121,14 @@ class MyApp extends StatelessWidget {
 
 
 
+
 // import 'dart:io';
 // import 'package:dotted_border/dotted_border.dart';
 // import 'package:flutter/foundation.dart';
 // import 'package:flutter/material.dart';
 // import 'package:image_cropper/image_cropper.dart';
 // import 'package:image_picker/image_picker.dart';
+// import 'package:library_app/features/records/student_record_details/Widgets/data/subscription_repository.dart';
 //
 // void main() {
 //   runApp(const MyApp());
@@ -229,10 +231,7 @@ class MyApp extends StatelessWidget {
 //               padding: const EdgeInsets.all(kIsWeb ? 24.0 : 16.0),
 //               child: Text(
 //                 widget.title,
-//                 style: Theme.of(context)
-//                     .textTheme
-//                     .displayMedium!
-//                     .copyWith(color: Theme.of(context).highlightColor),
+//                 style: Theme.of(context).textTheme.displayMedium!.copyWith(color: Theme.of(context).highlightColor),
 //               ),
 //             ),
 //           Expanded(child: _body()),
@@ -256,8 +255,7 @@ class MyApp extends StatelessWidget {
 //         crossAxisAlignment: CrossAxisAlignment.center,
 //         children: [
 //           Padding(
-//             padding:
-//             const EdgeInsets.symmetric(horizontal: kIsWeb ? 24.0 : 16.0),
+//             padding: const EdgeInsets.symmetric(horizontal: kIsWeb ? 24.0 : 16.0),
 //             child: Card(
 //               elevation: 4.0,
 //               child: Padding(
@@ -322,7 +320,19 @@ class MyApp extends StatelessWidget {
 //               tooltip: 'Crop',
 //               child: const Icon(Icons.crop),
 //             ),
-//           )
+//           ),
+//         Padding(
+//           padding: const EdgeInsets.only(left: 32.0),
+//           child: FloatingActionButton(
+//             onPressed: () {
+//               //_saveImage();
+//               logDebug('tap on sav img...');
+//             },
+//             backgroundColor: Colors.green,
+//             tooltip: 'Save',
+//             child: const Icon(Icons.save),
+//           ),
+//         ),
 //       ],
 //     );
 //   }
@@ -364,18 +374,9 @@ class MyApp extends StatelessWidget {
 //                           Text(
 //                             'Upload an image to start',
 //                             style: kIsWeb
-//                                 ? Theme.of(context)
-//                                 .textTheme
-//                                 .headlineSmall!
-//                                 .copyWith(
-//                                 color: Theme.of(context).highlightColor)
-//                                 : Theme.of(context)
-//                                 .textTheme
-//                                 .bodyMedium!
-//                                 .copyWith(
-//                                 color:
-//                                 Theme.of(context).highlightColor),
-//                           )
+//                                 ? Theme.of(context).textTheme.headlineSmall!.copyWith(color: Theme.of(context).highlightColor)
+//                                 : Theme.of(context).textTheme.bodyMedium!.copyWith(color: Theme.of(context).highlightColor),
+//                           ),
 //                         ],
 //                       ),
 //                     ),
@@ -384,13 +385,25 @@ class MyApp extends StatelessWidget {
 //               ),
 //               Padding(
 //                 padding: const EdgeInsets.symmetric(vertical: 24.0),
-//                 child: ElevatedButton(
-//                   onPressed: () {
-//                     _uploadImage();
-//                   },
-//                   style:
-//                   ElevatedButton.styleFrom(foregroundColor: Colors.white),
-//                   child: const Text('Upload'),
+//                 child: Row(
+//                   mainAxisAlignment: MainAxisAlignment.center,
+//                   children: [
+//                     ElevatedButton(
+//                       onPressed: () {
+//                         _uploadImage(ImageSource.gallery);
+//                       },
+//                       style: ElevatedButton.styleFrom(foregroundColor: Colors.white),
+//                       child: const Text('Upload Gallery'),
+//                     ),
+//                     const SizedBox(width: 16.0),
+//                     ElevatedButton(
+//                       onPressed: () {
+//                         _uploadImage(ImageSource.camera);
+//                       },
+//                       style: ElevatedButton.styleFrom(foregroundColor: Colors.white),
+//                       child: const Text('Take a Photo'),
+//                     ),
+//                   ],
 //                 ),
 //               ),
 //             ],
@@ -447,15 +460,46 @@ class MyApp extends StatelessWidget {
 //     }
 //   }
 //
-//   Future<void> _uploadImage() async {
-//     final pickedFile =
-//     await ImagePicker().pickImage(source: ImageSource.gallery);
+//   Future<void> _uploadImage(ImageSource source) async {
+//     final pickedFile = await ImagePicker().pickImage(source: source);
 //     if (pickedFile != null) {
 //       setState(() {
 //         _pickedFile = pickedFile;
 //       });
 //     }
 //   }
+//
+//   // Future<void> _saveImage() async {
+//   //   if (_croppedFile != null) {
+//   //     // Here, implement your API request using the cropped image
+//   //     // Example:
+//   //     try {
+//   //       final request = http.MultipartRequest('POST', Uri.parse('YOUR_API_URL'));
+//   //
+//   //       request.files.add(await http.MultipartFile.fromPath(
+//   //         'photo',
+//   //         _croppedFile!.path,
+//   //         contentType: MediaType('image', 'jpg'), // Adjust content type if needed
+//   //       ));
+//   //
+//   //       // Send the request
+//   //       final response = await request.send();
+//   //       if (response.statusCode == 200) {
+//   //         ScaffoldMessenger.of(context).showSnackBar(
+//   //           SnackBar(content: Text('Image uploaded successfully!')),
+//   //         );
+//   //       } else {
+//   //         ScaffoldMessenger.of(context).showSnackBar(
+//   //           SnackBar(content: Text('Failed to upload image.')),
+//   //         );
+//   //       }
+//   //     } catch (e) {
+//   //       ScaffoldMessenger.of(context).showSnackBar(
+//   //         SnackBar(content: Text('Error: $e')),
+//   //       );
+//   //     }
+//   //   }
+//   // }
 //
 //   void _clear() {
 //     setState(() {

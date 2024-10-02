@@ -258,6 +258,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       logDebug('Aadhar Front Image Path: ${_aadharFrontImageFile?.path}');
       logDebug('Aadhar Back Image Path: ${_aadharBackImageFile?.path}');
 
+      // Parse the input dates from 'dd-MM-yyyy' to DateTime
+      DateTime parsedStartDate = DateFormat('dd-MM-yyyy').parse(startDate);
+      DateTime parsedEndDate = DateFormat('dd-MM-yyyy').parse(endDate);
+
+      // Format the dates to 'yyyy-MM-dd'
+      String formattedStartDate = DateFormat('yyyy-MM-dd').format(parsedStartDate);
+      String formattedEndDate = DateFormat('yyyy-MM-dd').format(parsedEndDate);
+
       // Create a Map for the request body
       final requestBody = {
         'name': name,
@@ -265,8 +273,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         'contact': contact,
         'aadhar_no': aadharNo,
         'address': address,
-        'start_date': startDate,
-        'end_date': endDate,
+        'start_date': formattedStartDate, // Use formatted date
+        'end_date': formattedEndDate,       // Use formatted date
         'fee': fee.toString(), // Convert fee to string
         'user_id': userId.toString(),
         'seat_no': seatNo,

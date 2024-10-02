@@ -4,6 +4,7 @@ import 'package:http_parser/http_parser.dart'; // Add this line for MediaType
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:library_app/utils/shared_preferences_helper.dart';
@@ -17,6 +18,7 @@ import '../../registration/data/device_code_model.dart';
 import '../../registration/presentation/widgets/image_picker_Widget.dart';
 import '../../registration/presentation/widgets/registration_form.dart';
 import '../../registration/presentation/widgets/submit_button.dart';
+import 'package:image/image.dart' as img;
 
 class StudentRegisterDemo extends StatefulWidget {
   const StudentRegisterDemo({super.key});
@@ -137,11 +139,14 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
           imageQuality: 100,
         );
         if (pickedFile != null) {
-          setState(() {
+          setState(() async {
             if (isFront) {
               _aadharFrontImageFile = File(pickedFile.path);
+              // Crop the image after picking
+              await _cropImage(pickedFile.path, isFront);
             } else {
               _aadharBackImageFile = File(pickedFile.path);
+              await _cropImage(pickedFile.path, isFront);
             }
           });
         }
@@ -154,6 +159,33 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Camera permission is required to take photos')),
       );
+    }
+  }
+
+  Future<void> _cropImage(String imagePath, bool isFront) async {
+    CroppedFile? croppedFile = await ImageCropper().cropImage(
+      sourcePath: imagePath,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Cropper',
+          toolbarColor:AppColor.btncolor,
+          toolbarWidgetColor: Colors.white,
+          lockAspectRatio: false,
+        ),
+        IOSUiSettings(
+          title: 'Cropper',
+        ),
+      ],
+    );
+
+    if (croppedFile != null) {
+      setState(() {
+        if (isFront) {
+          _aadharFrontImageFile = File(croppedFile.path);
+        } else {
+          _aadharBackImageFile = File(croppedFile.path);
+        }
+      });
     }
   }
 
@@ -195,6 +227,238 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
     super.dispose();
   }
 
+  // void _validateAndSubmit() async {
+  //   if (_formKey.currentState?.validate() ?? false) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Processing Data...')),
+  //     );
+  //
+  //     // Prepare the data
+  //     final name = _studentNameController.text;
+  //     final serialNo = _serialNumberController.text;
+  //     final contact = _contactDetailsController.text;
+  //     final aadharNo = _aadharNumberController.text;
+  //     final address = _addressController.text;
+  //     final startDate = _startDateController.text; // Keep as string for API
+  //     final endDate = _endDateController.text; // Keep as string for API
+  //     final fee = _feesController.text;
+  //     final feeWord = _feesWordController.text;
+  //     final seatNo = _setNumberController.text.toString();
+  //     final paymentMode = _paymentMode;
+  //     final empCode = _employeeCodeController.text;
+  //     //final empCode = '0000';
+  //
+  //     // Retrieve userId from SharedPreferences
+  //     final userId = await SharedPreferencesHelper.getUserId();
+  //
+  //     logDebug('User ID retrieved: $userId');
+  //
+  //     if (userId == null) {
+  //       logDebug('User ID is null, cannot proceed with registration.');
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('User ID is missing. Registration cannot proceed.')),
+  //       );
+  //       return;
+  //     }
+  //
+  //     // Check if images are provided
+  //     if (_profileImageFile == null || _aadharFrontImageFile == null || _aadharBackImageFile == null) {
+  //       logDebug('Image files are missing. Please provide all images.');
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('Please upload all required images.')),
+  //       );
+  //       return;
+  //     }
+  //
+  //     // Log all data before API call
+  //     logDebug('Registration Data:');
+  //     logDebug('Name: $name');
+  //     logDebug('Serial No: $serialNo');
+  //     logDebug('Contact: $contact');
+  //     logDebug('Aadhar No: $aadharNo');
+  //     logDebug('Address: $address');
+  //     logDebug('Start Date: $startDate');
+  //     logDebug('End Date: $endDate');
+  //     logDebug('Fee: $fee');
+  //     logDebug('Fee in words: $feeWord');
+  //     logDebug('User ID: $userId');
+  //     logDebug('Seat No: $seatNo');
+  //     logDebug('Payment Mode: $paymentMode');
+  //     logDebug('Employee Code: $empCode');
+  //     logDebug('Profile Image Path: ${_profileImageFile?.path}');
+  //     logDebug('Aadhar Front Image Path: ${_aadharFrontImageFile?.path}');
+  //     logDebug('Aadhar Back Image Path: ${_aadharBackImageFile?.path}');
+  //
+  //     // Create a Map for the request body
+  //     final requestBody = {
+  //       'name': name,
+  //       'serial_no': serialNo,
+  //       'contact': contact,
+  //       'aadhar_no': aadharNo,
+  //       'address': address,
+  //       'start_date': startDate,
+  //       'end_date': endDate,
+  //       'fee': fee.toString(), // Convert fee to string
+  //       'user_id': userId.toString(),
+  //       'seat_no': seatNo,
+  //       'payment_mode': paymentMode,
+  //       'Empcode': empCode,
+  //       'fees_in_word': feeWord,
+  //     };
+  //
+  //     // Log the request body
+  //     logDebug('Request Body: ${requestBody.toString()}');
+  //
+  //     // API call to register student using multipart request
+  //     var request = http.MultipartRequest(
+  //       'POST',
+  //       Uri.parse(AppUrl.demoregisterApi),
+  //     );
+  //
+  //     // Add form fields
+  //     request.fields.addAll(requestBody);
+  //     logDebug('Form fields added to request.');
+  //
+  //     // Add image files
+  //     if (_profileImageFile != null) {
+  //       request.files.add(await http.MultipartFile.fromPath(
+  //         'photo',
+  //         _profileImageFile!.path,
+  //         contentType: MediaType('image', 'png'),
+  //       ));
+  //       logDebug('Profile image added to request.');
+  //     }
+  //     if (_aadharFrontImageFile != null) {
+  //       request.files.add(await http.MultipartFile.fromPath(
+  //         'aadhar_front',
+  //         _aadharFrontImageFile!.path,
+  //         contentType: MediaType('image', 'png'),
+  //       ));
+  //       logDebug('Aadhar front image added to request.');
+  //     }
+  //     if (_aadharBackImageFile != null) {
+  //       request.files.add(await http.MultipartFile.fromPath(
+  //         'aadhar_back',
+  //         _aadharBackImageFile!.path,
+  //         contentType: MediaType('image', 'png'),
+  //       ));
+  //       logDebug('Aadhar back image added to request.');
+  //     }
+  //
+  //     // Send the request
+  //     final response = await request.send();
+  //     logDebug('API request sent, waiting for response.');
+  //
+  //     // Log the response status code
+  //     logDebug('Response status code on registration page: ${response.statusCode}');
+  //
+  //     // Handle response
+  //     if (response.statusCode == 200) {
+  //       final responseData = await http.Response.fromStream(response);
+  //       logDebug('Response received from server.');
+  //
+  //       // Log the response body for debugging
+  //       logDebug('Response body on demo registration page: ${responseData.body}');
+  //
+  //       try {
+  //         // Attempt to parse JSON after stripping out HTML
+  //         var responseBody = responseData.body;
+  //         if (responseBody.contains('<')) {
+  //           // If the response contains HTML, clean it up
+  //           responseBody = responseBody.replaceAll(RegExp(r'<[^>]*>'), '');
+  //           logDebug('Response body cleaned of HTML.');
+  //         }
+  //         logDebug('Parsed response body: $responseBody');
+  //
+  //         final Map<String, dynamic> jsonResponse = jsonDecode(responseBody);
+  //
+  //         if (jsonResponse['status'] == 'success') {
+  //           final studentId = jsonResponse['student_id'];
+  //           logDebug('Registration successful: Student ID = $studentId');
+  //
+  //           // Navigator.pushNamed(
+  //           //   context,
+  //           //   AppRoutes.registrationSuccess,
+  //           //   arguments: {
+  //           //     'studentId': studentId,
+  //           //     'requestBody': requestBody,
+  //           //     'images': {
+  //           //       'profileImage': _profileImageFile!.path,
+  //           //       'aadharFrontImage': _aadharFrontImageFile!.path,
+  //           //       'aadharBackImage': _aadharBackImageFile!.path,
+  //           //     },
+  //           //   },
+  //           // );
+  //           try {
+  //             Navigator.pushNamed(
+  //               context,
+  //               AppRoutes.demoSuccessRegistration,
+  //               arguments: {
+  //                 'studentId': studentId,
+  //                 'requestBody': requestBody,
+  //                 'images': {
+  //                   'profileImage': _profileImageFile!.path,
+  //                   'aadharFrontImage': _aadharFrontImageFile!.path,
+  //                   'aadharBackImage': _aadharBackImageFile!.path,
+  //                 },
+  //               },
+  //             );
+  //             logDebug('Navigated to registration success page.');
+  //           } catch (e) {
+  //             logDebug('Error during navigation: $e');
+  //             ScaffoldMessenger.of(context).showSnackBar(
+  //               SnackBar(content: Text('Navigation failed: $e')),
+  //             );
+  //           }
+  //
+  //
+  //         } else {
+  //           logDebug('Registration failed: ${jsonResponse['message']}');
+  //           ScaffoldMessenger.of(context).showSnackBar(
+  //             SnackBar(content: Text('Registration Failed: ${jsonResponse['message']}')),
+  //           );
+  //         }
+  //       } catch (e) {
+  //         logDebug('Error parsing JSON: $e');
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(content: Text('Unexpected response format from server.')),
+  //         );
+  //       }
+  //     } else {
+  //       logDebug('Server error: ${response.statusCode}');
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('Server error, please try again later.')),
+  //       );
+  //     }
+  //   } else {
+  //     logDebug('Form validation failed. Please correct the errors.');
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Please fix the errors in the form')),
+  //     );
+  //   }
+  // }
+
+  // Future<File> _processImage(File imageFile) async {
+  //   // Read the image file
+  //   final bytes = await imageFile.readAsBytes();
+  //   final image = img.decodeImage(bytes);
+  //
+  //   if (image != null) {
+  //     // If the image is in portrait mode, rotate it to landscape
+  //     if (image.height > image.width) {
+  //       // Rotate the image 90 degrees clockwise
+  //       final rotatedImage = img.copyRotate(image, angle: 90);
+  //       // Encode the rotated image back to bytes
+  //       final newBytes = img.encodePng(rotatedImage);
+  //       // Write the new image back to the file
+  //       await imageFile.writeAsBytes(newBytes);
+  //       logDebug('Image converted to landscape mode.');
+  //     }
+  //   }
+  //
+  //   return imageFile; // Return the original or processed file
+  // }
+
   void _validateAndSubmit() async {
     if (_formKey.currentState?.validate() ?? false) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -214,11 +478,9 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
       final seatNo = _setNumberController.text.toString();
       final paymentMode = _paymentMode;
       final empCode = _employeeCodeController.text;
-      //final empCode = '0000';
 
       // Retrieve userId from SharedPreferences
       final userId = await SharedPreferencesHelper.getUserId();
-
       logDebug('User ID retrieved: $userId');
 
       if (userId == null) {
@@ -237,6 +499,11 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
         );
         return;
       }
+
+      // Process images for orientation
+      // _profileImageFile = await _processImage(_profileImageFile!);
+      // _aadharFrontImageFile = await _processImage(_aadharFrontImageFile!);
+      // _aadharBackImageFile = await _processImage(_aadharBackImageFile!);
 
       // Log all data before API call
       logDebug('Registration Data:');
@@ -257,6 +524,14 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
       logDebug('Aadhar Front Image Path: ${_aadharFrontImageFile?.path}');
       logDebug('Aadhar Back Image Path: ${_aadharBackImageFile?.path}');
 
+      // Parse the input dates from 'dd-MM-yyyy' to DateTime
+      DateTime parsedStartDate = DateFormat('dd-MM-yyyy').parse(startDate);
+      DateTime parsedEndDate = DateFormat('dd-MM-yyyy').parse(endDate);
+
+      // Format the dates to 'yyyy-MM-dd'
+      String formattedStartDate = DateFormat('yyyy-MM-dd').format(parsedStartDate);
+      String formattedEndDate = DateFormat('yyyy-MM-dd').format(parsedEndDate);
+
       // Create a Map for the request body
       final requestBody = {
         'name': name,
@@ -264,9 +539,9 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
         'contact': contact,
         'aadhar_no': aadharNo,
         'address': address,
-        'start_date': startDate,
-        'end_date': endDate,
-        'fee': fee.toString(), // Convert fee to string
+        'start_date': formattedStartDate, // Use formatted date
+        'end_date': formattedEndDate,       // Use formatted date
+        'fee': fee.toString(),
         'user_id': userId.toString(),
         'seat_no': seatNo,
         'payment_mode': paymentMode,
@@ -332,7 +607,6 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
           // Attempt to parse JSON after stripping out HTML
           var responseBody = responseData.body;
           if (responseBody.contains('<')) {
-            // If the response contains HTML, clean it up
             responseBody = responseBody.replaceAll(RegExp(r'<[^>]*>'), '');
             logDebug('Response body cleaned of HTML.');
           }
@@ -344,19 +618,6 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
             final studentId = jsonResponse['student_id'];
             logDebug('Registration successful: Student ID = $studentId');
 
-            // Navigator.pushNamed(
-            //   context,
-            //   AppRoutes.registrationSuccess,
-            //   arguments: {
-            //     'studentId': studentId,
-            //     'requestBody': requestBody,
-            //     'images': {
-            //       'profileImage': _profileImageFile!.path,
-            //       'aadharFrontImage': _aadharFrontImageFile!.path,
-            //       'aadharBackImage': _aadharBackImageFile!.path,
-            //     },
-            //   },
-            // );
             try {
               Navigator.pushNamed(
                 context,
@@ -378,8 +639,6 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
                 SnackBar(content: Text('Navigation failed: $e')),
               );
             }
-
-
           } else {
             logDebug('Registration failed: ${jsonResponse['message']}');
             ScaffoldMessenger.of(context).showSnackBar(
@@ -455,6 +714,16 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
                   print('Profile Image: ${file?.path}');
                 },
               ),
+              // if (_profileImageFile != null)
+              //   Image.file(
+              //     _profileImageFile!,
+              //     // width: 100,
+              //     // height: 100,
+              //     // fit: BoxFit.cover,
+              //   )
+              // else
+              //   const Text('No image selected.'),
+
               SizedBox(height: 20.h),
               RegistrationTextFormField(
                 controller: _employeeCodeController,
@@ -534,8 +803,6 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
                 },
                 maxLength: 3,
               ),
-
-
               SizedBox(height: 16.h),
               RegistrationTextFormField(
                 controller: _feesController,
@@ -546,7 +813,6 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
                 maxLength: 4,
               ),
               SizedBox(height: 16.h),
-
               RegistrationTextFormField(
                 controller: _feesWordController,
                 hintText: 'Fees Amount in Words',
@@ -556,7 +822,6 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
                     : null,
                 maxLength: 80,
               ),
-
               SizedBox(height: 16.h),
               Text(
                 'Payment Mode:',
@@ -622,6 +887,7 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
                 maxLength: 12,
               ),
               SizedBox(height: 16.h),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -629,6 +895,7 @@ class _StudentRegisterDemoState extends State<StudentRegisterDemo> {
                   _buildImageWidget(_aadharBackImageFile, 'assets/images/back-adhacard.jpg', () => _pickImage(false)),
                 ],
               ),
+
               SizedBox(height: 16.h),
               RegistrationTextFormField(
                 controller: _addressController,

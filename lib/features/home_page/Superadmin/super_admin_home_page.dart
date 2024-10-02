@@ -78,14 +78,14 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
     final dashboardViewModel = Provider.of<StudentDashboardViewModel>(context);
 
 
-    // Filtering today's notifications
-    final today = DateTime.now();
-    final todayNotifications = notificationViewModel.notifications.where((notification) {
-      final notificationDate = DateTime.parse(notification.endDate); // Assuming endDate is in ISO 8601 format
-      return notificationDate.year == today.year &&
-          notificationDate.month == today.month &&
-          notificationDate.day == today.day;
-    }).toList();
+    // // Filtering today's notifications
+    // final today = DateTime.now();
+    // final todayNotifications = notificationViewModel.notifications.where((notification) {
+    //   final notificationDate = DateTime.parse(notification.endDate); // Assuming endDate is in ISO 8601 format
+    //   return notificationDate.year == today.year &&
+    //       notificationDate.month == today.month &&
+    //       notificationDate.day == today.day;
+    // }).toList();
 
     return WillPopScope(
       onWillPop: () async {
@@ -282,24 +282,23 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
                     ? Center(child: CircularProgressIndicator(color: AppColor.btncolor))
                     : notificationViewModel.errorMessage != null
                     ? Center(child: Text(notificationViewModel.errorMessage!))
-                    : todayNotifications.isEmpty
+                    : notificationViewModel.notifications.isEmpty
                     ? Center(child: Text('No notifications for today'))
                     :ListView.builder(
-                  itemCount: todayNotifications.length,
+                  itemCount: notificationViewModel.notifications.length,
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
                   itemBuilder: (context, index) {
-                    final notification = todayNotifications[index];
+                    final notification = notificationViewModel.notifications[index];
                     logDebug('Displaying notification: ${notification.studentName}');
-
 
                     return GestureDetector(
                       onTap: () {
                         logDebug('Notification tapped: ${notification.studentName}');
                         Navigator.pushNamed(
                           context,
-                          AppRoutes.studentRecordScreen,
-                          //arguments: notification.studentId,
+                          AppRoutes.studentsdetails,
+                          arguments: notification.studentId,
                         );
                       },
                       child: Container(
@@ -415,11 +414,14 @@ class _SuperAdminHomePageState extends State<SuperAdminHomePage> {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            title,
-            style: LexendtextFont600.copyWith(
-              fontSize: 12.sp,
-              color: borderColor,
+          Center(
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: LexendtextFont600.copyWith(
+                fontSize: 12.sp,
+                color: borderColor,
+              ),
             ),
           ),
           Text(
