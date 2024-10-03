@@ -101,6 +101,7 @@ class _SuccessRegistrationScreenState extends State<SuccessRegistrationScreen> {
     try {
       final paymentSlipPdfService = PaymentSlipPdfService(); // Correct service
       final pdfBytes = await paymentSlipPdfService.generatePaymentSlipPdf(
+        serialNo:  _studentRecord!.serialNo,
         studentName: _studentRecord!.name,
         startDate: _studentRecord!.startDate,
         endDate: _studentRecord!.endDate,
@@ -178,135 +179,144 @@ class _SuccessRegistrationScreenState extends State<SuccessRegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColor.whiteColor,
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(16.w),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset("assets/icons/success-icon.png", height: 84.h, width: 84.w),
-                SizedBox(height: 20.h),
-                Text(
-                  'Student Details Submitted\nSuccessfully',
-                  style: LexendtextFont500.copyWith(fontSize: 20.sp, color: AppColor.textcolorBlack),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 20.h),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    InkWell(
-                      onTap: _printPdf,
-                      child: Container(
-                        width: 160.w,
-                        height: 60.h,
-                        decoration: ShapeDecoration(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          color: AppColor.textcolorBlack,
-                        ),
-                        child: Center(
-                          child: Text('Print Form', style: LexendtextFont700.copyWith(fontSize: 16.sp, color: AppColor.whiteColor)),
-                        ),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: _generatePaymentSlipPdf,
-                      child: Container(
-                        width: 160.w,
-                        height: 60.h,
-                        decoration: ShapeDecoration(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          color: AppColor.textcolor_gold,
-                        ),
-                        child: Center(
-                          child: Text('Payment Slip', style: LexendtextFont700.copyWith(fontSize: 16.sp, color: AppColor.whiteColor)),
+    return WillPopScope(
+      onWillPop: () async {
+        // Pop twice
+        Navigator.pop(context);
+        Navigator.pop(context);
+        // Return false to prevent the default back navigation
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: AppColor.whiteColor,
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.all(16.w),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset("assets/icons/success-icon.png", height: 84.h, width: 84.w),
+                  SizedBox(height: 20.h),
+                  Text(
+                    'Student Details Submitted\nSuccessfully',
+                    style: LexendtextFont500.copyWith(fontSize: 20.sp, color: AppColor.textcolorBlack),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 20.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      InkWell(
+                        onTap: _printPdf,
+                        child: Container(
+                          width: 160.w,
+                          height: 60.h,
+                          decoration: ShapeDecoration(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            color: AppColor.textcolorBlack,
+                          ),
+                          child: Center(
+                            child: Text('Print Form', style: LexendtextFont700.copyWith(fontSize: 16.sp, color: AppColor.whiteColor)),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20.h),
-                InkWell(
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    height: 60.h,
-                    decoration: ShapeDecoration(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      color: AppColor.btncolor,
-                    ),
-                    child: Center(
-                      child: Text('Go To Dashboard', style: LexendtextFont700.copyWith(fontSize: 16.sp, color: AppColor.whiteColor)),
+                      InkWell(
+                        onTap: _generatePaymentSlipPdf,
+                        child: Container(
+                          width: 160.w,
+                          height: 60.h,
+                          decoration: ShapeDecoration(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            color: AppColor.textcolor_gold,
+                          ),
+                          child: Center(
+                            child: Text('Payment Slip', style: LexendtextFont700.copyWith(fontSize: 16.sp, color: AppColor.whiteColor)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20.h),
+                  InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      height: 60.h,
+                      decoration: ShapeDecoration(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        color: AppColor.btncolor,
+                      ),
+                      child: Center(
+                        child: Text('Go To Dashboard', style: LexendtextFont700.copyWith(fontSize: 16.sp, color: AppColor.whiteColor)),
+                      ),
                     ),
                   ),
-                ),
-
-                // // Display request body data in a column format
-                // if (widget.requestBody != null)
-                //   Column(
-                //     crossAxisAlignment: CrossAxisAlignment.start,
-                //     children: widget.requestBody!.entries.map((entry) {
-                //       return Text(
-                //         '${entry.key}: ${entry.value}',
-                //         style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack),
-                //       );
-                //     }).toList(),
-                //   ),
-                //
-                // Column(
-                //   children: [
-                //     Text('Name: ${widget.requestBody?['name'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
-                //     Text('Serial No: ${widget.requestBody?['serial_no'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
-                //     Text('Contact: ${widget.requestBody?['contact'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
-                //     Text('Aadhar No: ${widget.requestBody?['aadhar_no'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
-                //     Text('Address: ${widget.requestBody?['address'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
-                //     Text('Start Date: ${widget.requestBody?['start_date'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
-                //     Text('End Date: ${widget.requestBody?['end_date'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
-                //     Text('Fee: ${widget.requestBody?['fee'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
-                //     Text('Fee: ${widget.requestBody?['fees_in_word'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
-                //     Text('User ID: ${widget.requestBody?['user_id'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
-                //     Text('Seat No: ${widget.requestBody?['seat_no'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
-                //     Text('Payment Mode: ${widget.requestBody?['payment_mode'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
-                //     Text('Employee Code: ${widget.requestBody?['Empcode'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
-                //
-                //     Image(
-                //       image: FileImage(
-                //         File(widget.images?['profileImage'] ?? 'assets/default_image.png'), // Fallback to default if null
-                //       ),
-                //       width: 100, // Set your desired width
-                //       height: 100, // Set your desired height
-                //     ),
-                //
-                //     Row(
-                //       mainAxisAlignment: MainAxisAlignment.center,
-                //       children: [
-                //         Image(
-                //           image: FileImage(
-                //             File(widget.images?['aadharFrontImage'] ?? 'assets/default_image.png'), // Fallback to default if null
-                //           ),
-                //           width: 100,
-                //           height: 100,
-                //         ),
-                //         Image(
-                //           image: FileImage(
-                //             File(widget.images?['aadharBackImage'] ?? 'assets/default_image.png'), // Fallback to default if null
-                //           ),
-                //           width: 100,
-                //           height: 100,
-                //         ),
-                //       ],
-                //     ),
-                //
-                //
-                //   ],
-                // ),
-              ],
+      
+                  // // Display request body data in a column format
+                  // if (widget.requestBody != null)
+                  //   Column(
+                  //     crossAxisAlignment: CrossAxisAlignment.start,
+                  //     children: widget.requestBody!.entries.map((entry) {
+                  //       return Text(
+                  //         '${entry.key}: ${entry.value}',
+                  //         style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack),
+                  //       );
+                  //     }).toList(),
+                  //   ),
+                  //
+                  // Column(
+                  //   children: [
+                  //     Text('Name: ${widget.requestBody?['name'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
+                  //     Text('Serial No: ${widget.requestBody?['serial_no'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
+                  //     Text('Contact: ${widget.requestBody?['contact'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
+                  //     Text('Aadhar No: ${widget.requestBody?['aadhar_no'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
+                  //     Text('Address: ${widget.requestBody?['address'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
+                  //     Text('Start Date: ${widget.requestBody?['start_date'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
+                  //     Text('End Date: ${widget.requestBody?['end_date'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
+                  //     Text('Fee: ${widget.requestBody?['fee'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
+                  //     Text('Fee: ${widget.requestBody?['fees_in_word'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
+                  //     Text('User ID: ${widget.requestBody?['user_id'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
+                  //     Text('Seat No: ${widget.requestBody?['seat_no'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
+                  //     Text('Payment Mode: ${widget.requestBody?['payment_mode'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
+                  //     Text('Employee Code: ${widget.requestBody?['Empcode'] ?? 'N/A'}', style: LexendtextFont500.copyWith(fontSize: 16.sp, color: AppColor.textcolorBlack)),
+                  //
+                  //     Image(
+                  //       image: FileImage(
+                  //         File(widget.images?['profileImage'] ?? 'assets/default_image.png'), // Fallback to default if null
+                  //       ),
+                  //       width: 100, // Set your desired width
+                  //       height: 100, // Set your desired height
+                  //     ),
+                  //
+                  //     Row(
+                  //       mainAxisAlignment: MainAxisAlignment.center,
+                  //       children: [
+                  //         Image(
+                  //           image: FileImage(
+                  //             File(widget.images?['aadharFrontImage'] ?? 'assets/default_image.png'), // Fallback to default if null
+                  //           ),
+                  //           width: 100,
+                  //           height: 100,
+                  //         ),
+                  //         Image(
+                  //           image: FileImage(
+                  //             File(widget.images?['aadharBackImage'] ?? 'assets/default_image.png'), // Fallback to default if null
+                  //           ),
+                  //           width: 100,
+                  //           height: 100,
+                  //         ),
+                  //       ],
+                  //     ),
+                  //
+                  //
+                  //   ],
+                  // ),
+                ],
+              ),
             ),
           ),
         ),

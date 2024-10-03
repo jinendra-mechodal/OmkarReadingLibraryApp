@@ -87,39 +87,39 @@ class _DemoSuccessRegistrationScreenState extends State<DemoSuccessRegistrationS
     }
   }
 
-  Future<void> _generatePaymentSlipPdf() async {
-    if (_studentRecord == null) {
-      logDebug('No student record available to generate payment slip PDF.');
-      return;
-    }
-
-    logDebug('Starting Payment Slip PDF generation for student: ${_studentRecord!.feeWord}');
-
-    try {
-      final paymentSlipPdfService = PaymentSlipPdfService();
-      final pdfBytes = await paymentSlipPdfService.generatePaymentSlipPdf(
-        studentName: _studentRecord!.name,
-        startDate: _studentRecord!.startDate,
-        endDate: _studentRecord!.endDate,
-        fee: _studentRecord!.fee,
-        feeWord: _studentRecord!.feeWord,
-        payment_mode: _studentRecord!.payment_mode,
-      );
-
-      logDebug('Payment Slip PDF generated successfully for student: ${_studentRecord!.name}');
-
-      await Printing.layoutPdf(
-        onLayout: (PdfPageFormat format) async {
-          logDebug('Preparing to print Payment Slip PDF for student: ${_studentRecord!.name}');
-          return pdfBytes;
-        },
-      );
-
-      logDebug('Print job sent successfully for student: ${_studentRecord!.name}');
-    } catch (e) {
-      logDebug('Error occurred during Payment Slip PDF generation or printing: $e');
-    }
-  }
+  // Future<void> _generatePaymentSlipPdf() async {
+  //   if (_studentRecord == null) {
+  //     logDebug('No student record available to generate payment slip PDF.');
+  //     return;
+  //   }
+  //
+  //   logDebug('Starting Payment Slip PDF generation for student: ${_studentRecord!.feeWord}');
+  //
+  //   try {
+  //     final paymentSlipPdfService = PaymentSlipPdfService();
+  //     final pdfBytes = await paymentSlipPdfService.generatePaymentSlipPdf(
+  //       studentName: _studentRecord!.name,
+  //       startDate: _studentRecord!.startDate,
+  //       endDate: _studentRecord!.endDate,
+  //       fee: _studentRecord!.fee,
+  //       feeWord: _studentRecord!.feeWord,
+  //       payment_mode: _studentRecord!.payment_mode,
+  //     );
+  //
+  //     logDebug('Payment Slip PDF generated successfully for student: ${_studentRecord!.name}');
+  //
+  //     await Printing.layoutPdf(
+  //       onLayout: (PdfPageFormat format) async {
+  //         logDebug('Preparing to print Payment Slip PDF for student: ${_studentRecord!.name}');
+  //         return pdfBytes;
+  //       },
+  //     );
+  //
+  //     logDebug('Print job sent successfully for student: ${_studentRecord!.name}');
+  //   } catch (e) {
+  //     logDebug('Error occurred during Payment Slip PDF generation or printing: $e');
+  //   }
+  // }
 
   void _fetchStudentDetails(int studentId) async {
     try {
@@ -173,89 +173,98 @@ class _DemoSuccessRegistrationScreenState extends State<DemoSuccessRegistrationS
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColor.whiteColor,
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(16.w),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset("assets/icons/success-icon.png", height: 84.h, width: 84.w),
-                SizedBox(height: 20.h),
-                Text(
-                  'Student Details Submitted\nSuccessfully...',
-                  style: LexendtextFont500.copyWith(fontSize: 20.sp, color: AppColor.textcolorBlack),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 20.h),
-                // Row(
-                //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //   children: [
-                //     InkWell(
-                //       onTap: _printPdf,
-                //       child: Container(
-                //         width: 160.w,
-                //         height: 60.h,
-                //         decoration: ShapeDecoration(
-                //           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                //           color: AppColor.textcolorBlack,
-                //         ),
-                //         child: Center(
-                //           child: Text('Print Form', style: LexendtextFont700.copyWith(fontSize: 16.sp, color: AppColor.whiteColor)),
-                //         ),
-                //       ),
-                //     ),
-                //     // InkWell(
-                //     //   onTap: _generatePaymentSlipPdf,
-                //     //   child: Container(
-                //     //     width: 160.w,
-                //     //     height: 60.h,
-                //     //     decoration: ShapeDecoration(
-                //     //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                //     //       color: AppColor.textcolor_gold,
-                //     //     ),
-                //     //     child: Center(
-                //     //       child: Text('Payment Slip', style: LexendtextFont700.copyWith(fontSize: 16.sp, color: AppColor.whiteColor)),
-                //     //     ),
-                //     //   ),
-                //     // ),
-                //   ],
-                // ),
-                InkWell(
-                  onTap: _printPdf,
-                  child: Container(
-                    //width: 160.w,
-                    height: 60.h,
-                    decoration: ShapeDecoration(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      color: AppColor.textcolorBlack,
-                    ),
-                    child: Center(
-                      child: Text('Print Form', style: LexendtextFont700.copyWith(fontSize: 16.sp, color: AppColor.whiteColor)),
+    return WillPopScope(
+      onWillPop: () async {
+        // Pop twice
+        Navigator.pop(context);
+        Navigator.pop(context);
+        // Return false to prevent the default back navigation
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: AppColor.whiteColor,
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.all(16.w),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset("assets/icons/success-icon.png", height: 84.h, width: 84.w),
+                  SizedBox(height: 20.h),
+                  Text(
+                    'Student Details Submitted\nSuccessfully...',
+                    style: LexendtextFont500.copyWith(fontSize: 20.sp, color: AppColor.textcolorBlack),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 20.h),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //   children: [
+                  //     InkWell(
+                  //       onTap: _printPdf,
+                  //       child: Container(
+                  //         width: 160.w,
+                  //         height: 60.h,
+                  //         decoration: ShapeDecoration(
+                  //           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  //           color: AppColor.textcolorBlack,
+                  //         ),
+                  //         child: Center(
+                  //           child: Text('Print Form', style: LexendtextFont700.copyWith(fontSize: 16.sp, color: AppColor.whiteColor)),
+                  //         ),
+                  //       ),
+                  //     ),
+                  //     // InkWell(
+                  //     //   onTap: _generatePaymentSlipPdf,
+                  //     //   child: Container(
+                  //     //     width: 160.w,
+                  //     //     height: 60.h,
+                  //     //     decoration: ShapeDecoration(
+                  //     //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  //     //       color: AppColor.textcolor_gold,
+                  //     //     ),
+                  //     //     child: Center(
+                  //     //       child: Text('Payment Slip', style: LexendtextFont700.copyWith(fontSize: 16.sp, color: AppColor.whiteColor)),
+                  //     //     ),
+                  //     //   ),
+                  //     // ),
+                  //   ],
+                  // ),
+                  InkWell(
+                    onTap: _printPdf,
+                    child: Container(
+                      //width: 160.w,
+                      height: 60.h,
+                      decoration: ShapeDecoration(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        color: AppColor.textcolorBlack,
+                      ),
+                      child: Center(
+                        child: Text('Print Form', style: LexendtextFont700.copyWith(fontSize: 16.sp, color: AppColor.whiteColor)),
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(height: 20.h),
-                InkWell(
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    height: 60.h,
-                    decoration: ShapeDecoration(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      color: AppColor.btncolor,
-                    ),
-                    child: Center(
-                      child: Text('Go To Dashboard', style: LexendtextFont700.copyWith(fontSize: 16.sp, color: AppColor.whiteColor)),
+                  SizedBox(height: 20.h),
+                  InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      height: 60.h,
+                      decoration: ShapeDecoration(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        color: AppColor.btncolor,
+                      ),
+                      child: Center(
+                        child: Text('Go To Dashboard', style: LexendtextFont700.copyWith(fontSize: 16.sp, color: AppColor.whiteColor)),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

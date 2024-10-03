@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pdf/pdf.dart';
@@ -16,6 +18,8 @@ class SuccessStudentDetailsScreen extends StatelessWidget {
   final String fees;
   final String feeWord;
   final String payment_mode;
+  final String serialNo;
+
 
 
   const SuccessStudentDetailsScreen({
@@ -27,7 +31,59 @@ class SuccessStudentDetailsScreen extends StatelessWidget {
     required this.fees,
     required this.feeWord,
     required this.payment_mode,
+    required this.serialNo,
   });
+
+  // Future<Map<String, dynamic>> _insertSerialNumber(String serialNo) async {
+  //   logDebug('Attempting to insert serial number: $serialNo');
+  //
+  //   final response = await http.post(
+  //     Uri.parse('https://library.mechodal.com/add_serial_number.php'),
+  //     body: {'serial_no': serialNo.toString()}, // Convert int to String for API request
+  //   );
+  //
+  //   logDebug('Response status code: ${response.statusCode}');
+  //
+  //   if (response.statusCode == 200) {
+  //     return jsonDecode(response.body);
+  //   } else {
+  //     return {'success': false, 'message': 'Failed to connect to the server.'};
+  //   }
+  // }
+
+  Future<Map<String, dynamic>> _insertSerialNumber(String serialNo) async {
+    logDebug('Attempting to insert serial number: $serialNo');
+
+    // Prepare the request body
+    final requestBody = {'number': serialNo};
+    logDebug('Request body: $requestBody'); // Log the request body
+    logDebug('Request type: POST'); // Log the request type
+    logDebug('Request body type: ${requestBody.runtimeType}'); // Log the data type of the request body
+
+    final response = await http.post(
+      Uri.parse('https://library.mechodal.com/add_serial_number.php'),
+      body: requestBody,
+    );
+
+    logDebug('Response status code: ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      logDebug('Raw API response: ${response.body}');
+
+      try {
+        final responseData = jsonDecode(response.body);
+        logDebug('API response: $responseData');
+        return responseData;
+      } catch (e) {
+        logDebug('Failed to parse JSON: $e'); // Log the error if JSON parsing fails
+        return {'success': false, 'message': 'Invalid server response.'};
+      }
+    } else {
+      logDebug('Error connecting to the server. Status code: ${response.statusCode}');
+      return {'success': false, 'message': 'Failed to connect to the server.'};
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +95,7 @@ class SuccessStudentDetailsScreen extends StatelessWidget {
     logDebug('$fees');
     logDebug('$feeWord');
     logDebug('$payment_mode');
+    logDebug('$serialNo');
 
     return Scaffold(
       backgroundColor: AppColor.whiteColor,
@@ -62,14 +119,56 @@ class SuccessStudentDetailsScreen extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
+              Text(
+                '$serialNo',
+                style: LexendtextFont500.copyWith(
+                  fontSize: 20.sp,
+                  color: AppColor.textcolorBlack,
+                ),
+                textAlign: TextAlign.center,
+              ),
               SizedBox(height: 20.h),
               InkWell(
                 onTap: () async {
                   print('Generating PDF...');
 
+                  // Convert serialNo to String for API call
+                  final serialNoString = serialNo.toString();
+                  logDebug('Converting serialNo to String: $serialNoString');
+
+                  // API call to insert serial number
+                  final apiResponse = await _insertSerialNumber(serialNoString);
+                  logDebug('API response: $apiResponse');
+
+
+                  if (apiResponse['success']) {
+                    logDebug('Serial number inserted successfully.'); // Log success message
+                  } else {
+                    final errorMessage = apiResponse['message'] ?? 'Failed to insert serial number.';
+                    logDebug('Error inserting serial number: $errorMessage'); // Log error message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(errorMessage),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                    return; // Exit if the API call was not successful
+                  }
+
+                  // Generate PDF
+                  logDebug('Generating PDF with the following details:');
+                  logDebug('Serial Number: $serialNo');
+                  logDebug('Student Name: $studentName');
+                  logDebug('Start Date: $startDate');
+                  logDebug('End Date: $endDate');
+                  logDebug('Fees: $fees');
+                  logDebug('Fee Word: $feeWord');
+                  logDebug('Payment Mode: $payment_mode');
+
                   // Generate PDF
                   final pdfService = PaymentSlipPdfService();
                   final pdfData = await pdfService.generatePaymentSlipPdf(
+                    serialNo:  serialNo,
                     studentName: studentName,
                     startDate: startDate,
                     endDate: endDate,

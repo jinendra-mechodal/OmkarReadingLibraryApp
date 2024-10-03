@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-
+import 'package:http/http.dart' as http;
+import '../../../res/app_url/app_url.dart';
 import '../../../res/colors/app_color.dart';
 import '../../../res/fonts/text_style.dart';
 import '../../../res/routes/app_routes.dart';
@@ -9,6 +12,7 @@ import '../../../utils/logger.dart';
 import '../student_record_edit/data/student_service.dart';
 import 'Widgets/CustomSubscriptionDialog.dart';
 import 'student_details_view_model/student_details_view_model.dart';
+
 
 class StudentDetailsPage extends StatefulWidget {
   final int studentId;
@@ -26,7 +30,20 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchStudentDetails();
       _fetchSubscriptionDetails();
+      _fetchSerialNumber();
     });
+  }
+
+  Future<int?> _fetchSerialNumber() async {
+    final response = await http.get(Uri.parse(AppUrl.getsrnumber));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      logDebug('Fetched serial number: ${data['new_number']}');
+      return data['new_number']; // Assuming the response format is {"new_number":3}
+    } else {
+      logDebug('Failed to fetch serial number: ${response.statusCode}');
+      return null;
+    }
   }
 
   Future<void> _fetchStudentDetails() async {
@@ -140,11 +157,35 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
     );
   }
 
-  void _showCustomDialog(BuildContext context, int studentId, String studentName) {
+  // void _showCustomDialog(BuildContext context, int studentId, String studentName) {
+  //   final TextEditingController _startDateController = TextEditingController();
+  //   final TextEditingController _endDateController = TextEditingController();
+  //   final TextEditingController _feesController = TextEditingController();
+  //   final TextEditingController _feesInWordsController = TextEditingController(); // Initialize the fees in words controller
+  //
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return CustomSubscriptionDialog(
+  //         startDateController: _startDateController,
+  //         endDateController: _endDateController,
+  //         feesController: _feesController,
+  //         studentId: studentId,
+  //         studentName: studentName,
+  //         feesInWordsController: _feesInWordsController, // Pass the initialized controller
+  //       );
+  //     },
+  //   );
+  // }
+
+  void _showCustomDialog(BuildContext context, int studentId, String studentName, int? serialNumber) {
     final TextEditingController _startDateController = TextEditingController();
     final TextEditingController _endDateController = TextEditingController();
     final TextEditingController _feesController = TextEditingController();
-    final TextEditingController _feesInWordsController = TextEditingController(); // Initialize the fees in words controller
+    final TextEditingController _feesInWordsController = TextEditingController();
+
+    // Optional: Log student info and serial number
+    logDebug('Showing dialog for Student ID: $studentId, Name: $studentName, Serial Number: $serialNumber');
 
     showDialog(
       context: context,
@@ -155,7 +196,8 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
           feesController: _feesController,
           studentId: studentId,
           studentName: studentName,
-          feesInWordsController: _feesInWordsController, // Pass the initialized controller
+          feesInWordsController: _feesInWordsController,
+          serialNumber: serialNumber, // Pass the serial number if needed// Pass the serial number if needed
         );
       },
     );
@@ -480,8 +522,9 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             color: Colors.white,
             child: ElevatedButton(
-              onPressed: () {
-                _showCustomDialog(context, widget.studentId, student.name); // Pass studentName here
+              onPressed: ()async  {
+                final serialNumber = await _fetchSerialNumber(); // Fetch the serial number
+                _showCustomDialog(context, widget.studentId, student.name, serialNumber); // Pass studentName here
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColor.btncolor,

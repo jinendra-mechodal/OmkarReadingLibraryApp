@@ -24,8 +24,10 @@ class PrintPaymentScreen extends StatefulWidget {
 }
 
 class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
+  int _serialNo = 1; // State variable for serial number
+
   final PrintStudentRecordRepository _repository =
-      PrintStudentRecordRepository();
+  PrintStudentRecordRepository();
 
   List<String> _studentNames = [];
   Map<String, String> _studentMap = {};
@@ -38,7 +40,7 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
 
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _searchSubscriptionController =
-      TextEditingController();
+  TextEditingController();
   List<String> _filteredStudentNames = [];
   List<Map<String, String>> _filteredSubscriptions = [];
 
@@ -61,8 +63,8 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
       setState(() {
         _filteredStudentNames = _studentNames
             .where((name) => name
-                .toLowerCase()
-                .contains(_searchController.text.toLowerCase()))
+            .toLowerCase()
+            .contains(_searchController.text.toLowerCase()))
             .toList();
       });
     });
@@ -71,9 +73,9 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
       setState(() {
         _filteredSubscriptions = _studentsubscription
             .where((subscription) =>
-                subscription['subscriptionPeriod']?.toLowerCase().contains(
-                    _searchSubscriptionController.text.toLowerCase()) ??
-                false)
+        subscription['subscriptionPeriod']?.toLowerCase().contains(
+            _searchSubscriptionController.text.toLowerCase()) ??
+            false)
             .toList();
       });
     });
@@ -118,7 +120,7 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
         try {
           // Fetch subscription details from the repository
           final records =
-              await _repository.fetchSubscriptionDetails(selectedStudentId);
+          await _repository.fetchSubscriptionDetails(selectedStudentId);
 
           // Log the fetched records
           logDebug('Fetched subscription records: \n$records');
@@ -217,7 +219,12 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
                       decoration: InputDecoration(
                         prefixIcon: Container(
                           padding: EdgeInsets.all(8.0),
-                          child: Icon(Icons.search, color: AppColor.textcolorSilver),
+                          child: Image.asset(
+                            'assets/icons/search-icon.png',
+                            color: AppColor.textcolorSilver,
+                            height: 24.h,
+                            width: 24.w,
+                          ),
                         ),
                         hintText: 'Search student...',
                         border: OutlineInputBorder(
@@ -227,23 +234,34 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
                     ),
                   ),
                   Expanded(
-                    child: ListView.builder(
-                      itemCount: _filteredStudentNames.length,
-                      itemBuilder: (context, index) {
-                        final studentName = _filteredStudentNames[index];
+                    child: _filteredStudentNames.isNotEmpty
+                        ? ListView(
+                      padding: EdgeInsets.zero,
+                      children: _filteredStudentNames.map((studentName) {
                         return ListTile(
                           title: Text(studentName),
                           onTap: () {
                             setState(() {
                               _selectedStudent = studentName;
-                              print('Selected Student: $_selectedStudent');
+                              _selectedStudentId = _studentMap[studentName];
+                              print('Selected Student: $_selectedStudent, ID: $_selectedStudentId');
+
+                              // Clear previously selected subscription and text fields
+                              _selectedSubscription = null;
+                              _startDateController.clear();
+                              _endDateController.clear();
+                              _feesController.clear();
+
+                              // Fetch subscriptions based on selected student
+                              _fetchSubscriptions();
                             });
 
                             Navigator.pop(context); // Close the bottom sheet
                           },
                         );
-                      },
-                    ),
+                      }).toList(),
+                    )
+                        : Center(child: Text('No students found')),
                   ),
                 ],
               ),
@@ -452,8 +470,14 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
       fee: _feesController.text,
       feeWord: _feesWordController.text,
       payment_mode:_paymentMode,
-
+      //serialNo:'1',
+      serialNo: _serialNo.toString(),
     );
+
+    // Increment the serial number for the next print
+    setState(() {
+      _serialNo++;
+    });
 
     // Display the PDF to the user for preview and printing
     await Printing.layoutPdf(
@@ -668,12 +692,13 @@ class _PrintPaymentScreenState extends State<PrintPaymentScreen> {
                     print('Fees: ${_feesController.text}');
                     print('Fees Word : ${_feesWordController.text}');
                     print('Paymnt mode  : $_paymentMode');
+                    print('Serial No: $_serialNo');
                     print('----------------------------------');
-                   // Navigator.pushNamed(context, AppRoutes.home);
-          
+                    // Navigator.pushNamed(context, AppRoutes.home);
+
                     // Generate and print the PDF
                     _generateAndPrintPdf();
-          
+
                   },
                   child: Center(
                     child: Text(

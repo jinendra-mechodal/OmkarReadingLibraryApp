@@ -303,6 +303,7 @@ class AppRoutes {
           fees: args['fees'],
           feeWord: args['fees_in_word'],
           payment_mode: args['payment_mode'],
+          serialNo: args['serialNo'], // Add serialNo here
         ),
       );
     }

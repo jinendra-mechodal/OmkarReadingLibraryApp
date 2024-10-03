@@ -6,6 +6,7 @@ import 'package:intl/intl.dart'; // For date formatting
 
 class PaymentSlipPdfService {
   Future<Uint8List> generatePaymentSlipPdf({
+    required String serialNo,
     required String studentName,
     required String startDate,
     required String endDate,
@@ -48,6 +49,7 @@ class PaymentSlipPdfService {
                     ),
                     pw.SizedBox(height: 50),
                     _buildPaymentSlipTable(
+                      serialNo: serialNo,
                       studentName: studentName,
                       startDate: startDate,
                       endDate: endDate,
@@ -85,6 +87,7 @@ class PaymentSlipPdfService {
 
   // Utility method to build details table for payment slip
   pw.Widget _buildPaymentSlipTable({
+    required String serialNo,
     required String studentName,
     required String startDate,
     required String endDate,
@@ -100,6 +103,7 @@ class PaymentSlipPdfService {
         1: pw.FractionColumnWidth(0.6),
       },
       children: [
+        _buildTableRow('Serial Number', serialNo, font),
         _buildTableRow('Student Name', studentName, font),
         _buildTableRow('Start Date', startDate, font),
         _buildTableRow('End Date', endDate, font),

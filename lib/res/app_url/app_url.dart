@@ -29,4 +29,7 @@ class AppUrl {
 
   static const String deviceCodeApi = '$baseUrl/get_device_code.php' ;
 
+  static const String getsrnumber = '$baseUrl/get_serial_number.php' ;
+  static const String addsrnumber = '$baseUrl/add_serial_number.php' ;
+
 }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:library_app/features/registration/presentation/widgets/submit_button.dart';
@@ -138,11 +139,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           imageQuality: 100,
         );
         if (pickedFile != null) {
-          setState(() {
+          setState(() async {
             if (isFront) {
               _aadharFrontImageFile = File(pickedFile.path);
+              // Crop the image after picking
+              await _cropImage(pickedFile.path, isFront);
             } else {
               _aadharBackImageFile = File(pickedFile.path);
+              await _cropImage(pickedFile.path, isFront);
             }
           });
         }
@@ -155,6 +159,33 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Camera permission is required to take photos')),
       );
+    }
+  }
+
+  Future<void> _cropImage(String imagePath, bool isFront) async {
+    CroppedFile? croppedFile = await ImageCropper().cropImage(
+      sourcePath: imagePath,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Cropper',
+          toolbarColor:AppColor.btncolor,
+          toolbarWidgetColor: Colors.white,
+          lockAspectRatio: false,
+        ),
+        IOSUiSettings(
+          title: 'Cropper',
+        ),
+      ],
+    );
+
+    if (croppedFile != null) {
+      setState(() {
+        if (isFront) {
+          _aadharFrontImageFile = File(croppedFile.path);
+        } else {
+          _aadharBackImageFile = File(croppedFile.path);
+        }
+      });
     }
   }
 
